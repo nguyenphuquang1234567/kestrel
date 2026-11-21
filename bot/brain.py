@@ -39,9 +39,9 @@ DEFAULTS = {
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
-    "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
-    "strafe_max": 1.1,
-    "strafe_flip": 0.7,       # chance a change actually reverses direction
+    "strafe_min": 0.25,       # seconds between strafe direction changes in a fight (uniform min..max)
+    "strafe_max": 0.8,
+    "strafe_flip": 0.8,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
@@ -58,7 +58,10 @@ DEFAULTS = {
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
-    "cover_open_w": 100.0,      # choosing cover: penalty per unit of openness
+    "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
+    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
+    "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
+    "early_safe_d": 50.0,
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -130,7 +133,7 @@ class Brain:
         self.P = load_params()
         WEAPON_VALUE.update({"mortar": self.P["mortar_value"], "laser": self.P["laser_value"],
                              "lightning": self.P["lightning_value"]})
-        self.rng = random.Random(int(hello.get("seed", 1)))
+        self.rng = random.Random(int(hello.get("seed", 1)) + 7919 * int(self.P["rng_salt"]))
         self.wcfg = cfg["weapons"]
         self.pickup_r = float(cfg["loot"]["pickup_radius"])
         self.gravity = float(mc.get("gravity", 22.0))
@@ -283,6 +286,8 @@ class Brain:
         return out
 
     def worth_fighting(self, e):
+        if self.t < self.P["early_safe_s"]:
+            return e.d < self.P["early_safe_d"] or self.t - e.tr.hurt_us_t < 6.0
         if self.P["engage_filter"] != "approach":
             return True
         if e.d < 50.0 or self.t - e.tr.hurt_us_t < 6.0 or e.hp_frac < 0.35:
@@ -1014,6 +1019,10 @@ class Brain:
             aim, fire, reload = self.engage(target, aim_now, fire)
             if self.world.mode == "ffa" and self.goal[0] == "cover" and not self.provoked(target):
                 fire = [False, False]  # avoiding this fight: shooting would only draw it to us
+            elif (self.t < self.P["early_safe_s"] and target.d > self.P["early_safe_d"]
+                  and self.t - self.world.last_damage_t() > 4.0 and self.t - target.tr.hurt_us_t > 6.0):
+                fire = [False, False]  # early on, don't start fights we weren't dragged into
+                self.hold_laser(fire)
             elif (self.P["hold_fire_beyond"] and target.d > self.P["engage_range"]
                   and self.t - self.world.last_damage_t() > 4.0 and self.t - target.tr.hurt_us_t > 6.0):
                 fire = [False, False]  # not our fight (yet): don't provoke it from range
