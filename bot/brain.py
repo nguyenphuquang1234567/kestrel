@@ -38,9 +38,9 @@ DEFAULTS = {
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
-    "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
-    "strafe_max": 1.1,
-    "strafe_flip": 0.7,       # chance a change actually reverses direction
+    "strafe_min": 0.6,       # seconds between strafe direction changes in a fight (uniform min..max)
+    "strafe_max": 1.6,
+    "strafe_flip": 0.6,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
@@ -49,7 +49,7 @@ DEFAULTS = {
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 140.0,    # visible enemies closer than this get fought
+    "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
