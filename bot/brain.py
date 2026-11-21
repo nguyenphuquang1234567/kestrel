@@ -36,6 +36,12 @@ DEFAULTS = {
     "laser_value": 3.2,
     "lightning_value": 3.0,
     "reload_hidden": True,
+    "force_mode": None,       # arena only: pin "squad" or "ffa"
+    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
+    "strafe_max": 1.1,
+    "strafe_flip": 0.7,       # chance a change actually reverses direction
+    "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
 
 
@@ -99,6 +105,9 @@ class Brain:
         self.kite_boost = False
         self.cover = None
         self.cover_t = -1e9
+        self.duel = None
+        self.duel_t = -1e9
+        self.duel_tid = None
         self.goal = ("roam", None)
         self.ignore_items = set()
         self.sweep_phase = 0
@@ -115,6 +124,8 @@ class Brain:
         self.deadline = t0 + 0.025
         w = self.world
         w.update(obs)
+        if self.P.get("force_mode"):
+            w.mode = self.P["force_mode"]
         me = obs["self"]
         self.me = me
         self.t = float(obs.get("t", self.t))
@@ -486,9 +497,54 @@ class Brain:
         self.cover_t = self.t
         return best
 
+    def duel_spot(self, target, enemies):
+        """A nearby walkable spot that keeps a line of fire to the target while as few of the other
+        known enemies as possible can see it (turns a 2-vs-1 into a 1-vs-1)."""
+        if self.duel is not None and self.t - self.duel_t < 1.0 and self.duel_tid == target.tr.id:
+            return self.duel
+        x, y = self.pos[0], self.pos[1]
+        others = [e for e in enemies if e.tr.id != target.tr.id and self.t - e.tr.seen_t < 5.0 and e.d < 220.0]
+        cands = [(x, y)]
+        for r in (7.0, 13.0, 20.0):
+            for k in range(12):
+                a = 2 * math.pi * k / 12
+                p = (x + r * math.cos(a), y + r * math.sin(a))
+                if self.nav.is_walkable(*p) and self.nav.walk_clear((x, y), p):
+                    cands.append(p)
+        mh = self.muzzle[2] - self.pos[2]
+        gz = self.map.ground_many([p[0] for p in cands], [p[1] for p in cands])
+        muz = [(p[0], p[1], float(g) + mh) for p, g in zip(cands, gz)]
+        ctr = [(p[0], p[1], float(g) + 4.5) for p, g in zip(cands, gz)]
+        sees_target = self.map.los_many(target.center, muz, step=1.0)
+        exposed = [0] * len(cands)
+        for e in others[:4]:
+            tp = e.tr.predict(self.t)
+            vis = self.map.los_many((tp[0], tp[1], tp[2] + 8.0), ctr, step=1.0)
+            for i, v in enumerate(vis):
+                if v:
+                    exposed[i] += 1
+        nc = self.zone.get("next_center")
+        nr = float(self.zone.get("next_radius", 1e4))
+        best, best_s = None, -1e9
+        for i, p in enumerate(cands):
+            s = (0.0 if sees_target[i] else -150.0) - 70.0 * exposed[i] - 0.6 * math.hypot(p[0] - x, p[1] - y)
+            if nc and math.hypot(p[0] - nc[0], p[1] - nc[1]) > nr:
+                s -= 30.0
+            if s > best_s:
+                best, best_s = p, s
+        self.duel, self.duel_t, self.duel_tid = best, self.t, target.tr.id
+        return best
+
     def fight_move(self, target, enemies):
         """Spacing plus a strafe that changes direction at random intervals."""
         x, y = self.pos[0], self.pos[1]
+        if self.P["duel"]:
+            others = [e for e in enemies if e.tr.id != target.tr.id and self.t - e.tr.seen_t < 5.0 and e.d < 220.0]
+            if others:
+                spot = self.duel_spot(target, enemies)
+                if spot is not None and math.hypot(spot[0] - x, spot[1] - y) > 3.0:
+                    to = self.unit(spot[0] - x, spot[1] - y)
+                    return to
         tx, ty = target.tr.pos[0], target.tr.pos[1]
         d = math.hypot(tx - x, ty - y)
         kinds = self.slot_kinds()
@@ -511,8 +567,8 @@ class Brain:
             if self.on_roof or self.nav.walk_clear((x, y), (x + dvec[0] * 6, y + dvec[1] * 6)):
                 return dvec
         if self.t > self.strafe_until:
-            self.strafe = -self.strafe if self.rng.random() < 0.7 else self.strafe
-            self.strafe_until = self.t + self.rng.uniform(0.35, 1.1)
+            self.strafe = -self.strafe if self.rng.random() < self.P["strafe_flip"] else self.strafe
+            self.strafe_until = self.t + self.rng.uniform(self.P["strafe_min"], self.P["strafe_max"])
         side = (-to[1] * self.strafe, to[0] * self.strafe)
         mx = to[0] * radial + side[0] * 0.9
         my = to[1] * radial + side[1] * 0.9
@@ -613,7 +669,10 @@ class Brain:
         reload = False
         gi, gun = self.weapon("gun")
         if target is not None and target.los:
-            return self.engage(target, aim_now, fire)
+            aim, fire, reload = self.engage(target, aim_now, fire)
+            if self.world.mode == "ffa" and self.goal[0] == "cover" and not self.provoked(target):
+                fire = [False, False]  # avoiding this fight: shooting would only draw it to us
+            return aim, fire, reload
         # farm crates and drones when no mech is in our sights
         farm = self.farm_target()
         if farm is not None:
@@ -629,13 +688,21 @@ class Brain:
                 li, lw = self.weapon("lightning")
                 if lw is not None and d < lw["stats"]["range"] * 0.9 and err < 0.2 and self.energy > 55:
                     fire[li] = True
+                self.hold_laser(fire)
                 return aim, fire, False
         if gun is not None and gun.get("ammo", 99) < gun["stats"].get("mag", 12) * 0.6 and not gun.get("reload"):
             hidden = not any(e.los for e in enemies)
             if (self.P["reload_hidden"] and hidden) or (
                     self.t - self.world.last_damage_t() > 2.0 and not any(e.tr.visible for e in enemies)):
                 reload = True
+        self.hold_laser(fire)
         return self.scan_aim(enemies, move), fire, reload
+
+    def hold_laser(self, fire):
+        """Keep a charge in progress instead of wasting it into a wall when the target ducks away."""
+        zi, lz = self.weapon("laser")
+        if lz is not None and float(lz.get("charge", 0.0)) > 0.0:
+            fire[zi] = True
 
     def engage(self, e, aim_now, fire):
         tr = e.tr
@@ -697,6 +764,13 @@ class Brain:
                     derr = angle_err(aim_now, direct)
                     fire[zi] = derr >= ang_size(d, rad) * 0.6  # release when on target
         return aim, fire, False
+
+    def provoked(self, e):
+        """In a free-for-all: worth shooting back (attacked, very close, or an easy kill)."""
+        t = self.t
+        if t - self.world.last_damage_t() < 4.0 or t - e.tr.hurt_us_t < 4.0:
+            return True
+        return e.d < 40.0 or (e.hp_frac < 0.4 and e.d < 110.0 and self.hp_frac > 0.6)
 
     def farm_target(self):
         """Nearest crate or drone in line of sight within 70 m (when we chose to loot it, or it is near)."""
@@ -773,10 +847,11 @@ class Brain:
 
     def pick_upgrade(self, offer):
         choices = offer.get("choices") or []
+        order = self.P.get("upgrade_order") or UPGRADE_ORDER
         best, best_r = 0, 1e9
         for k, c in enumerate(choices):
             cid = c.get("id")
-            r = UPGRADE_ORDER.index(cid) if cid in UPGRADE_ORDER else 500
+            r = order.index(cid) if cid in order else 500
             if r < best_r:
                 best, best_r = k, r
         return best
