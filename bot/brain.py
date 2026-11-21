@@ -36,8 +36,8 @@ DEFAULTS = {
     "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
-    "laser_value": 5.0,
-    "lightning_value": 2.0,
+    "laser_value": 3.2,
+    "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
@@ -70,6 +70,8 @@ DEFAULTS = {
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
     "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
+    "precharge": True,       # charge the laser for a tracked enemy about to come out from behind cover
+    "precharge_d": 90.0,
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -1052,6 +1054,10 @@ class Brain:
                 fire = [False, False]  # not our fight (yet): don't provoke it from range
                 self.hold_laser(fire)
             return aim, fire, reload
+        if self.P["precharge"]:
+            pc = self.precharge(enemies)
+            if pc is not None:
+                return pc
         if self.P["lob"]:
             lob = self.lob_shot(enemies, aim_now)
             if lob is not None:
@@ -1080,6 +1086,30 @@ class Brain:
                 reload = True
         self.hold_laser(fire)
         return self.scan_aim(enemies, move), fire, reload
+
+    def precharge(self, enemies):
+        """(aim, fire, reload) charging the laser at a tracked enemy that is hidden but coming our way, so
+        the first shot lands the moment it steps out."""
+        zi, lz = self.weapon("laser")
+        if lz is None:
+            return None
+        if float(lz.get("charge", 0.0)) <= 0.0 and lz.get("cooldown", 0.0) > 0.0:
+            return None
+        best = None
+        for e in enemies:
+            if not e.tr.visible or e.los or e.d > self.P["precharge_d"]:
+                continue
+            dx, dy = self.pos[0] - e.tr.pos[0], self.pos[1] - e.tr.pos[1]
+            n = math.hypot(dx, dy) or 1.0
+            closing = (e.tr.vel[0] * dx + e.tr.vel[1] * dy) / n
+            if (closing > 1.0 or e.d < 45.0) and (best is None or e.d < best.d):
+                best = e
+        if best is None:
+            return None
+        yaw, pitch = combat.yaw_pitch(self.muzzle, best.center)
+        fire = [False, False]
+        fire[zi] = True
+        return (yaw, clamp(pitch, *self.pitch_lim)), fire, False
 
     def lob_shot(self, enemies, aim_now):
         """(aim, fire, reload) lobbing a mortar shell at a recently seen enemy we can't shoot directly."""
