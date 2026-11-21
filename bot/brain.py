@@ -68,16 +68,17 @@ DEFAULTS = {
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
     "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
-    "quit_after_t": 180.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
-    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
+    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
+    "heal_hide": True,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -310,6 +311,16 @@ class Brain:
             out.append(Enemy(tr, math.dist(self.muzzle, c), bool(ok) and tr.visible, c))
         return out
 
+    def remembered_threats(self, max_age=20.0):
+        """Enemies seen in the last max_age seconds, at their predicted positions (for hiding)."""
+        out = []
+        for tr in self.world.enemies.values():
+            if self.t - tr.seen_t < max_age:
+                p = tr.predict(self.t)
+                c = (p[0], p[1], p[2] + 4.5)
+                out.append(Enemy(tr, math.dist(self.muzzle, c), False, c))
+        return out
+
     def worth_fighting(self, e):
         if self.t < self.P["early_safe_s"]:
             return e.d < self.P["early_safe_d"] or self.t - e.tr.hurt_us_t < 6.0
@@ -398,6 +409,9 @@ class Brain:
             return ("cover", None)
         if (self.P["regen_hold"] and self.hp_frac < self.P["regen_hold_hp"]
                 and self.t - w.last_damage_t() < 30.0 and any(self.t - e.tr.seen_t < 20.0 for e in enemies)):
+            return ("cover", None)
+        if (self.P["heal_hide"] and self.P["regen_hold"] and self.hp_frac < self.P["regen_hold_hp"]
+                and self.t - w.last_damage_t() < 30.0 and self.remembered_threats()):
             return ("cover", None)
 
         drop = self.drop_goal(obs, enemies)
@@ -1039,7 +1053,10 @@ class Brain:
                 d = self.fight_move(target, enemies)
                 boost = self.kite_boost and self.energy > 8
         elif kind == "cover":
-            c = self.find_cover(visible or enemies)
+            threats = visible or enemies
+            if not threats and self.P["heal_hide"]:
+                threats = self.remembered_threats()
+            c = self.find_cover(threats)
             if c is not None:
                 d = self.follow(c) if dist2(self.pos, c) > 2.5 else (0.0, 0.0)
             else:
