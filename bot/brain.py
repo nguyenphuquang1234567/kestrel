@@ -74,8 +74,8 @@ DEFAULTS = {
     "precharge_d": 90.0,
     "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
-    "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
-    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "quit_after_kills": 6,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
+    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
