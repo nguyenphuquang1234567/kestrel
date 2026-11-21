@@ -59,7 +59,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 1,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -67,6 +67,7 @@ DEFAULTS = {
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
     "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "retreat_open_w": 1.5,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -873,7 +874,13 @@ class Brain:
                     self.strafe_until = self.t + self.rng.uniform(self.P["strafe_min"], self.P["strafe_max"])
                 side = (-to[1] * self.strafe, to[0] * self.strafe)
                 self.kite_boost = near.d < self.P["retreat_boost_d"]
-                return self.unit(away[0] + side[0] * 0.5, away[1] + side[1] * 0.5)
+                rx, ry = away[0] + side[0] * 0.5, away[1] + side[1] * 0.5
+                if self.P["retreat_open_w"]:
+                    sh = self.shelter_dir()
+                    if sh is not None:
+                        rx, ry = self.unit(rx, ry)
+                        rx, ry = rx + self.P["retreat_open_w"] * sh[0], ry + self.P["retreat_open_w"] * sh[1]
+                return self.unit(rx, ry)
         if self.P["duel"]:
             others = [e for e in enemies if e.tr.id != target.tr.id and self.t - e.tr.seen_t < 5.0 and e.d < 220.0]
             if others:
