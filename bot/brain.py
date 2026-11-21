@@ -23,12 +23,12 @@ UPGRADE_ORDER = ["plating", "gun_mag", "armor", "gun_damage", "lightning_efficie
 SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", "boost", "jet", "reload"}
 
 DEFAULTS = {
-    "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
+    "kite_range": 55.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.2,
+    "losing_hp": 0.35,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
