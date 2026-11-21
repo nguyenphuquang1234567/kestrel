@@ -26,7 +26,7 @@ DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
-    "regen_hold_hp": 0.7,     # after a fight, hide until healed to this fraction
+    "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
@@ -55,7 +55,7 @@ DEFAULTS = {
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
-    "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
+    "target_hp_weight": 250.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
