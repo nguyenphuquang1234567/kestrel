@@ -46,13 +46,15 @@ DEFAULTS = {
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
+    "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
+    "explore": False,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
-    "finish_hp": 0.3,         # also engage enemies below this HP fraction out to finish_range
+    "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "engage_filter": "all",   # "approach": within engage_range, only fight enemies coming at us,
                               # that hurt us recently, that are very close, or that are weak
@@ -345,7 +347,7 @@ class Brain:
             prey = self.hunt_point(enemies)
             if prey is not None:
                 return ("hunt", prey)
-        if zone_pt is None or dist2(self.pos, zone_pt) < 15.0:
+        if self.P["explore"] and (zone_pt is None or dist2(self.pos, zone_pt) < 15.0):
             return ("explore", self.explore_point())
         return ("roam", zone_pt)
 
@@ -709,7 +711,7 @@ class Brain:
         x, y = self.pos[0], self.pos[1]
         if self.P["fight_retreat"]:
             engaged = [e for e in enemies if self.t - e.tr.seen_t < self.P["retreat_seen_s"] and e.d < 200.0]
-            if len(engaged) >= 2:
+            if len(engaged) >= max(1, int(self.P["retreat_min_enemies"])):
                 ax = sum((x - e.tr.pos[0]) / max(e.d, 1.0) ** 2 for e in engaged)
                 ay = sum((y - e.tr.pos[1]) / max(e.d, 1.0) ** 2 for e in engaged)
                 away = self.unit(ax, ay)
