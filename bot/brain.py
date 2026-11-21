@@ -47,13 +47,15 @@ DEFAULTS = {
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 100.0,    # visible enemies closer than this get fought
+    "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
-    "lob": False,             # mortar ready and no line of fire: lob shells at known enemies behind cover
+    "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
+    "engage_filter": "all",   # "approach": within engage_range, only fight enemies coming at us,
+                              # that hurt us recently, that are very close, or that are weak
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
@@ -254,6 +256,16 @@ class Brain:
             out.append(Enemy(tr, math.dist(self.muzzle, c), bool(ok) and tr.visible, c))
         return out
 
+    def worth_fighting(self, e):
+        if self.P["engage_filter"] != "approach":
+            return True
+        if e.d < 50.0 or self.t - e.tr.hurt_us_t < 6.0 or e.hp_frac < 0.35:
+            return True
+        dx, dy = self.pos[0] - e.tr.pos[0], self.pos[1] - e.tr.pos[1]
+        n = math.hypot(dx, dy) or 1.0
+        closing = (e.tr.vel[0] * dx + e.tr.vel[1] * dy) / n
+        return closing > 2.0
+
     def threat_level(self, e):
         tr = e.tr
         dps = 100.0
@@ -286,7 +298,7 @@ class Brain:
         w = self.world
         zone_urg, zone_pt = self.zone_need()
         visible = [e for e in enemies if e.tr.visible]
-        close = [e for e in visible if e.d < self.P["engage_range"]
+        close = [e for e in visible if (e.d < self.P["engage_range"] and self.worth_fighting(e))
                  or (e.hp_frac < self.P["finish_hp"] and e.d < self.P["finish_range"])]
         recent_hit = self.t - w.last_damage_t() < 3.0
 
