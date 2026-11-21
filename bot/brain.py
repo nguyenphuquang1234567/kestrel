@@ -55,7 +55,7 @@ DEFAULTS = {
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
     "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 30.0,
+    "roof_after": 0.0,
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
