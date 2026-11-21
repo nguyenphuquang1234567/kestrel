@@ -47,12 +47,12 @@ DEFAULTS = {
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 110.0,    # visible enemies closer than this get fought
+    "engage_range": 100.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": False,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
-    "finish_hp": 0.3,         # also engage enemies below this HP fraction out to finish_range
+    "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
