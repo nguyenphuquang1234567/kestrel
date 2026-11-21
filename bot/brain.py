@@ -74,7 +74,9 @@ DEFAULTS = {
     "precharge_d": 90.0,
     "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
-    "quit_after_kills": 3,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
+    "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
+    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "kill_loot_hp": 0.35,
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -180,6 +182,7 @@ class Brain:
         self.sweep_t = 0.0
         self.last_move = (0.0, 0.0)
         self.zone_hist = {}
+        self.kill_spots = []
         self.t = 0.0
         gc.collect()
         gc.freeze()
@@ -189,6 +192,10 @@ class Brain:
         t0 = time.perf_counter()
         self.deadline = t0 + 0.025
         w = self.world
+        for ev in obs.get("events", []) or []:
+            if ev.get("type") == "kill" and ev.get("target") in w.enemies:
+                tp = w.enemies[ev["target"]].pos
+                self.kill_spots.append((float(obs.get("t", self.t)), (tp[0], tp[1])))
         w.update(obs)
         if self.P.get("force_mode"):
             w.mode = self.P["force_mode"]
@@ -381,6 +388,10 @@ class Brain:
 
         if zone_urg >= self.P["zone_go"]:
             return ("zone", zone_pt)
+        if self.P["kill_loot"] and self.hp_frac >= self.P["kill_loot_hp"]:
+            kc = self.kill_cubes_goal()
+            if kc is not None:
+                return ("loot", kc)
         if self.hp_frac < 0.45 and recent_hit:
             return ("cover", None)
         if (self.P["regen_hold"] and self.hp_frac < self.P["regen_hold_hp"]
@@ -462,6 +473,32 @@ class Brain:
         self.no_steer = True
         jump = self.grounded and self.energy > 40
         return self.unit(sx - x, sy - y), not self.grounded and self.energy > 2, jump
+
+    def kill_cubes_goal(self):
+        """("cube", id, pos) for cubes dropped where we recently killed someone, or the spot itself
+        while we have not seen them yet; None when there is nothing left to collect."""
+        self.kill_spots = [(ts, p) for ts, p in self.kill_spots if self.t - ts < 20.0]
+        if not self.kill_spots:
+            return None
+        best = None
+        for i, rec in self.world.cubes.items():
+            cp = rec["pos"]
+            if any(math.hypot(cp[0] - p[0], cp[1] - p[1]) < 20.0 for _, p in self.kill_spots):
+                d = dist2(self.pos, cp)
+                if d < 150.0 and (best is None or d < best[0]):
+                    best = (d, ("cube", i, cp))
+        if best is not None:
+            return best[1]
+        keep = []
+        for ts, p in self.kill_spots:
+            d = dist2(self.pos, p)
+            if d > 15.0 and d < 150.0:
+                keep.append((ts, p))
+        self.kill_spots = keep
+        if keep:
+            ts, p = min(keep, key=lambda k: dist2(self.pos, k[1]))
+            return ("cube", None, (p[0], p[1], self.map.ground_z(p[0], p[1])))
+        return None
 
     def zone_circle(self):
         z = self.zone
