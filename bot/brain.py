@@ -32,7 +32,7 @@ DEFAULTS = {
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
-    "gun_range": 90.0,       # preferred spacing with only a gun
+    "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
@@ -83,7 +83,7 @@ DEFAULTS = {
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
-    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush": True,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
     "weapon_rush_d": 150.0,
     "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
