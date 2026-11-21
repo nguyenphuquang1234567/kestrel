@@ -25,7 +25,7 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.0, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.35,
@@ -552,31 +552,47 @@ class Brain:
         n = math.hypot(dx, dy)
         return (dx / n, dy / n) if n > 1e-9 else (0.0, 0.0)
 
+    def can_go(self, d, look=6.0):
+        """True if a short walk along unit direction d stays clear. From a spot inside the grid's wall
+        margin (hugging a building) the start cell itself counts as blocked, so only the points ahead
+        are checked there."""
+        x, y = self.pos[0], self.pos[1]
+        q = (x + look * d[0], y + look * d[1])
+        if self.nav.is_walkable(x, y):
+            return self.nav.walk_clear((x, y), q)
+        mid = (x + 0.6 * look * d[0], y + 0.6 * look * d[1])
+        return self.nav.is_walkable(*q) and self.nav.is_walkable(*mid)
+
     def clear_dir(self, d, look=6.0):
-        """Rotate d until a short walk ahead is clear (local steering)."""
+        """Rotate d until a short walk ahead is clear (local steering); pressed against a wall with no
+        clear way, head for the nearest walkable spot."""
         if self.on_roof or (d[0] == 0.0 and d[1] == 0.0):
             return d
         x, y = self.pos[0], self.pos[1]
-        if not self.nav.is_walkable(x, y):
-            return d
         base = math.atan2(d[1], d[0])
-        for off in (0.0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6):
+        for off in (0.0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6, 2.0, -2.0):
             a = base + off
-            q = (x + look * math.cos(a), y + look * math.sin(a))
-            if self.nav.walk_clear((x, y), q):
-                return (math.cos(a), math.sin(a))
+            c = (math.cos(a), math.sin(a))
+            if self.can_go(c, look):
+                return c
+        if not self.nav.is_walkable(x, y):
+            wx, wy = self.nav.nearest_walkable(x, y)
+            esc = self.unit(wx - x, wy - y)
+            if esc != (0.0, 0.0):
+                return esc
         return d
 
     def find_cover(self, threats):
         if self.cover is not None and self.t - self.cover_t < 1.0:
             return self.cover
         x, y = self.pos[0], self.pos[1]
+        start = (x, y) if self.nav.is_walkable(x, y) else self.nav.nearest_walkable(x, y)
         cands = []
         for r in (9.0, 16.0, 25.0, 36.0):
             for k in range(12):
                 a = 2 * math.pi * k / 12 + self.rng.uniform(-0.2, 0.2)
                 p = (x + r * math.cos(a), y + r * math.sin(a))
-                if self.nav.is_walkable(*p) and self.nav.walk_clear((x, y), p):
+                if self.nav.is_walkable(*p) and self.nav.walk_clear(start, p):
                     cands.append(p)
         if not cands or not threats:
             return None
@@ -686,7 +702,7 @@ class Brain:
         if kiting and d < P["kite_range"] + 5.0:
             self.kite_boost = True
             dvec = self.unit(-to[0] + (-to[1]) * self.strafe * 0.35, -to[1] + to[0] * self.strafe * 0.35)
-            if self.on_roof or self.nav.walk_clear((x, y), (x + dvec[0] * 6, y + dvec[1] * 6)):
+            if self.on_roof or self.can_go(dvec):
                 return dvec
         if self.t > self.strafe_until:
             self.strafe = -self.strafe if self.rng.random() < self.P["strafe_flip"] else self.strafe
@@ -695,7 +711,7 @@ class Brain:
         mx = to[0] * radial + side[0] * 0.9
         my = to[1] * radial + side[1] * 0.9
         dvec = self.unit(mx, my)
-        if not self.on_roof and not self.nav.walk_clear((x, y), (x + dvec[0] * 6, y + dvec[1] * 6)):
+        if not self.on_roof and not self.can_go(dvec):
             self.strafe = -self.strafe
             self.strafe_until = self.t + 0.8
             side = (-to[1] * self.strafe, to[0] * self.strafe)
