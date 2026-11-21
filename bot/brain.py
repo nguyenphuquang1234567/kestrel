@@ -44,7 +44,7 @@ DEFAULTS = {
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
-    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
+    "retreat_boost_d": 60.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
@@ -56,7 +56,7 @@ DEFAULTS = {
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
-    "finish_hp": 0.3,         # also engage enemies below this HP fraction out to finish_range
+    "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
                               # that hurt us recently, that are very close, or that are weak
