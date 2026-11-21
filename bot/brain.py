@@ -29,11 +29,11 @@ DEFAULTS = {
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.35,
-    "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 120.0,
-    "lightning_range": 26.0,
+    "gun_range": 70.0,       # preferred spacing with only a gun
+    "laser_range": 90.0,
+    "lightning_range": 60.0,
     "mortar_value": 1.0,
-    "laser_value": 2.6,
+    "laser_value": 3.2,
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
