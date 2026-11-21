@@ -211,8 +211,8 @@ class Map:
         i1 = int(math.floor(x + radius - self.x0 - 0.5)) + 1
         j0 = int(math.floor(y - radius - self.y0 - 0.5))
         j1 = int(math.floor(y + radius - self.y0 - 0.5)) + 1
-        if i0 < 0 or j0 < 0 or i1 >= self.nx or j1 >= self.ny:
-            return True
+        if i0 < 0 or j0 < 0 or i1 + 1 >= self.nx or j1 + 1 >= self.ny:
+            return True  # the footprint reaches the edge of the map: the map edge is a wall
         sl = (slice(j0, j1 + 1), slice(i0, i1 + 1))
         cx = self.x0 + np.arange(i0, i1 + 1) + 0.5
         cy = self.y0 + np.arange(j0, j1 + 1) + 0.5
