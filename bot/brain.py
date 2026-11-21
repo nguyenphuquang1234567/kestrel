@@ -54,7 +54,9 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
-    "explore_open_w": 200.0,    # exploring: penalty per unit of openness (prefer short sightlines)
+    "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
+    "loot_open_w": 0.6,       # loot score x (1 - w * openness): skip loot lying in the open
+    "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -436,6 +438,8 @@ class Brain:
             pt = (nc[0] + (x - nc[0]) * k, nc[1] + (y - nc[1]) * k)
         else:
             pt = (nc[0], nc[1])
+        if self.P["zone_open_w"] and nr > 30.0:
+            pt = self.sheltered_zone_point(pt, nc, inner)
         if not self.me.get("in_zone", True):
             return 2.0, pt
         if dn <= inner:
@@ -503,6 +507,25 @@ class Brain:
             best = self.nav.nearest_walkable(nc[0], nc[1])
         self.explore_pt = best
         self.explore_t = self.t
+        return best
+
+    def sheltered_zone_point(self, pt, nc, inner):
+        """A spot near `pt`, inside the inner circle, with short sightlines (kept for 15 s per circle)."""
+        key = (round(nc[0]), round(nc[1]))
+        c = getattr(self, "_zone_shelter", None)
+        if c and c[0] == key and self.t - c[1] < 15.0:
+            return c[2]
+        best, best_s = pt, self.P["zone_open_w"] * self.open.at(*pt)
+        for _ in range(24):
+            a = self.rng.uniform(0.0, 2.0 * math.pi)
+            r = self.rng.uniform(0.0, 60.0)
+            q = (pt[0] + r * math.cos(a), pt[1] + r * math.sin(a))
+            if math.hypot(q[0] - nc[0], q[1] - nc[1]) > inner or not self.nav.is_walkable(*q):
+                continue
+            sc = 0.3 * r + self.P["zone_open_w"] * self.open.at(*q)
+            if sc < best_s:
+                best, best_s = q, sc
+        self._zone_shelter = (key, self.t, best)
         return best
 
     def drop_goal(self, obs, enemies):
@@ -575,6 +598,8 @@ class Brain:
             for e in enemies:
                 if self.t - e.tr.seen_t < 10.0 and dist2(e.tr.predict(self.t), pos) < self.P["loot_enemy_r"]:
                     s *= 0.4
+            if self.P["loot_open_w"]:
+                s *= max(0.05, 1.0 - self.P["loot_open_w"] * self.open.at(pos[0], pos[1]))
             return s
 
         for i, rec in w.pickups.items():
