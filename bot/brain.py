@@ -51,8 +51,8 @@ DEFAULTS = {
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
-    "laser_evade": True,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
-    "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
+    "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
+    "zone_go": 0.35,           # head into the next circle once the zone urgency reaches this
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
