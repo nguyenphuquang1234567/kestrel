@@ -36,8 +36,8 @@ DEFAULTS = {
     "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
-    "laser_value": 5.0,
-    "lightning_value": 2.0,
+    "laser_value": 3.2,
+    "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
@@ -59,7 +59,7 @@ DEFAULTS = {
     "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
-    "fight_open_w": 1.0,      # fighting: pull toward nearby spots with shorter sightlines
+    "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
@@ -68,18 +68,20 @@ DEFAULTS = {
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
-    "retreat_open_w": 1.5,    # fighting retreat: pull toward nearby spots with shorter sightlines
-    "precharge": True,       # charge the laser for a tracked enemy about to come out from behind cover
+    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
+    "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
     "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
-    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
-    "heal_hide": True,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
+    "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
+    "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
+    "hunt_first": True,      # when healthy, go after the last seen enemy before looting
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -97,7 +99,7 @@ DEFAULTS = {
                               # that hurt us recently, that are very close, or that are weak
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
-    "hunt_hp": 0.6,           # ... only above this HP fraction
+    "hunt_hp": 0.8,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
@@ -420,6 +422,10 @@ class Brain:
         drop = self.drop_goal(obs, enemies)
         if drop is not None:
             return ("drop", drop)
+        if self.P["hunt_first"] and self.hp_frac >= self.P["hunt_hp"] and zone_urg < 0.4:
+            prey = self.hunt_point(enemies)
+            if prey is not None:
+                return ("hunt", prey)
         item = self.loot_goal(enemies)
         if item is not None:
             return ("loot", item)
@@ -1091,7 +1097,7 @@ class Brain:
             else:
                 d = self.follow(gp)
                 far = dist2(self.pos, gp) > 70.0
-                boost = (kind == "zone" or (far and not visible)) and self.energy > 40
+                boost = (kind == "zone" or (far and not visible)) and self.energy > self.P["travel_boost_e"]
             if kind == "drop" and dist2(self.pos, goal[1]) < 4.0:
                 d = (0.0, 0.0)
 
