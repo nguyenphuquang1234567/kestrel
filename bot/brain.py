@@ -76,13 +76,17 @@ DEFAULTS = {
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
-    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
+    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush_d": 150.0,
+    "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
+    "weapon_rush_close": 35.0, # unless a visible enemy is this close
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -379,6 +383,10 @@ class Brain:
 
         if zone_urg >= 1.5:
             return ("zone", zone_pt)
+        if self.P["weapon_rush"] and zone_urg < 1.0:
+            wr = self.weapon_rush_goal(visible)
+            if wr is not None:
+                return ("loot", wr)
         if self.P["roof"] and self.t >= self.P["roof_after"] and zone_urg < 1.0:
             rg = self.roof_goal(visible_close=[e for e in enemies if e.tr.visible and e.d < 50.0])
             if rg is not None:
@@ -503,6 +511,28 @@ class Brain:
         self.no_steer = True
         jump = self.grounded and self.energy > 40
         return self.unit(sx - x, sy - y), not self.grounded and self.energy > 2, jump
+
+    def weapon_rush_goal(self, visible):
+        """("pickup", id, pos) for the best weapon worth rushing to, or None."""
+        if any(e.d < self.P["weapon_rush_close"] for e in visible):
+            return None
+        best = None
+        for i, rec in self.world.pickups.items():
+            if i in self.ignore_items:
+                continue
+            gain = self.want_weapon(rec.get("kind"))
+            if gain < self.P["weapon_rush_gain"]:
+                continue
+            p = rec["pos"]
+            if p[2] > self.map.ground_z(p[0], p[1]) + 2.5:
+                continue  # on a roof
+            d = dist2(self.pos, p)
+            if d > self.P["weapon_rush_d"]:
+                continue
+            s_ = gain / (d + 25.0)
+            if best is None or s_ > best[0]:
+                best = (s_, ("pickup", i, p))
+        return best[1] if best else None
 
     def kill_cubes_goal(self):
         """("cube", id, pos) for cubes dropped where we recently killed someone, or the spot itself
