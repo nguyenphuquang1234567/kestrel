@@ -26,9 +26,9 @@ DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
-    "regen_hold_hp": 0.9,     # after a fight, hide until healed to this fraction
+    "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.35,
+    "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
@@ -51,7 +51,10 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": False,             # mortar ready and no line of fire: lob shells at known enemies behind cover
-    "drops": True,            # go capture supply drops when no enemies are near them
+    "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
+    "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
+    "finish_range": 160.0,
+    "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
@@ -267,7 +270,7 @@ class Brain:
             s = -e.d
             if e.los:
                 s += 120.0
-            s += 60.0 * (1.0 - e.hp_frac)
+            s += self.P["target_hp_weight"] * (1.0 - e.hp_frac)
             if self.t - e.tr.hurt_us_t < 2.0:
                 s += 60.0
             if best is not None and best.tr.id == e.tr.id:
@@ -283,7 +286,8 @@ class Brain:
         w = self.world
         zone_urg, zone_pt = self.zone_need()
         visible = [e for e in enemies if e.tr.visible]
-        close = [e for e in visible if e.d < self.P["engage_range"]]
+        close = [e for e in visible if e.d < self.P["engage_range"]
+                 or (e.hp_frac < self.P["finish_hp"] and e.d < self.P["finish_range"])]
         recent_hit = self.t - w.last_damage_t() < 3.0
 
         if zone_urg >= 1.5:
