@@ -36,8 +36,8 @@ DEFAULTS = {
     "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
-    "laser_value": 5.0,
-    "lightning_value": 2.0,
+    "laser_value": 3.2,
+    "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
@@ -70,8 +70,11 @@ DEFAULTS = {
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
     "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
-    "precharge": True,       # charge the laser for a tracked enemy about to come out from behind cover
+    "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
+    "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
+    "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
+    "quit_after_kills": 1,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -209,6 +212,8 @@ class Brain:
         self.zone = obs.get("zone") or {}
         self.on_roof = self.pos[2] > self.map.ground_z(self.pos[0], self.pos[1]) + 3.0
 
+        if self.P["quit_after_kills"] and w.kills >= self.P["quit_after_kills"]:
+            return {"move": [0.0, 0.0], "fire": [False, False]}
         act = {}
         offer = obs.get("offer")
         if offer and offer.get("choices"):
@@ -410,6 +415,29 @@ class Brain:
             return None
         return ("roof", r)
 
+    def snipe_post(self, r):
+        """Where to stand on our roof: the edge facing the nearest known enemy, or the middle to heal."""
+        sx, sy = r["stand"]
+        if self.hp_frac < self.P["snipe_hp"]:
+            return (sx, sy)
+        known = [tr for tr in self.world.enemies.values() if self.t - tr.seen_t < 8.0]
+        snd = [s_ for s_ in self.world.sounds if s_["kind"] in SOUND_THREATS and self.t - s_["t"] < 3.0]
+        if known:
+            tr = min(known, key=lambda k: dist2(self.pos, k.pos))
+            u = self.unit(tr.pos[0] - sx, tr.pos[1] - sy)
+        elif snd:
+            b_ = snd[-1]["bearing"]
+            u = (math.cos(b_), math.sin(b_))
+        else:  # look around from a different edge every few seconds
+            a_ = (int(self.t // 4.0) % 6) * math.pi / 3.0
+            u = (math.cos(a_), math.sin(a_))
+        if math.hypot(*u) < 0.5:
+            return (sx, sy)
+        p = self.roofs.edge_toward(r, (sx, sy), u)
+        if p is None or not self.roofs.contains(r, p[0], p[1]):
+            return (sx, sy)
+        return p
+
     def roof_move(self, r):
         """Walk to the roof's climb point, jet up the wall, then hold the stand point."""
         x, y = self.pos[0], self.pos[1]
@@ -417,8 +445,9 @@ class Brain:
         if self.roofs.on(r, self.pos):
             self.climb_t = None
             self.no_steer = True
-            d = dist2(self.pos, (sx, sy))
-            return (self.unit(sx - x, sy - y) if d > 2.5 else (0.0, 0.0)), False, False
+            post = self.snipe_post(r) if self.P["roof_snipe"] else (sx, sy)
+            d = dist2(self.pos, post)
+            return (self.unit(post[0] - x, post[1] - y) if d > 2.5 else (0.0, 0.0)), False, False
         cx, cy = r["climb"]
         climbing = self.climb_t is not None or dist2(self.pos, (cx, cy)) < 6.0
         if not climbing:

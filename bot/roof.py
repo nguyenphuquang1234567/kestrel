@@ -119,6 +119,28 @@ class Roofs:
     def on(self, roof, pos):
         return pos[2] >= roof["top"] - 1.0 and self.contains(roof, pos[0], pos[1])
 
+    def edge_toward(self, roof, frm, u, inset=3.5):
+        """Point on the roof `inset` meters short of where a ray from `frm` along unit `u` leaves it
+        (outer edge or a courtyard), or None."""
+        fx, fy = frm
+        best = None
+        for ring in [roof["ring"]] + list(roof["holes"]):
+            xs, ys = ring[0::2], ring[1::2]
+            for i in range(len(xs)):
+                ax, ay, bx, by = xs[i - 1], ys[i - 1], xs[i], ys[i]
+                ex, ey = bx - ax, by - ay
+                den = u[0] * ey - u[1] * ex
+                if abs(den) < 1e-9:
+                    continue
+                t = ((ax - fx) * ey - (ay - fy) * ex) / den
+                s = ((ax - fx) * u[1] - (ay - fy) * u[0]) / den
+                if t > 0.0 and 0.0 <= s <= 1.0 and (best is None or t < best):
+                    best = t
+        if best is None:
+            return None
+        k = max(0.0, best - inset)
+        return (fx + u[0] * k, fy + u[1] * k)
+
     def pick(self, pos, zone_center, zone_radius, bad=()):
         """Closest usable roof whose stand point is well inside the next circle."""
         best = None
