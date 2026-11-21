@@ -12,6 +12,8 @@ import math
 FORGET_S = 25.0        # forget an unseen mech after this long
 ITEM_FORGET_S = 90.0   # forget an unseen item after this long
 SOUND_KEEP_S = 4.0
+FFA_DEATHS = 4         # deaths we did not cause ...
+FFA_BEFORE_S = 150.0   # ... before this match time switch us to free-for-all play
 
 
 class Track:
@@ -143,11 +145,11 @@ class World:
                 self.enemies.pop(e.get("target"), None)
 
         for b in obs.get("beams", []) or []:
-            self._beam_evidence(b)
+            self._beam_evidence(b)  # kept for diagnostics; too noisy to switch modes on
+        # Practice house bots never kill each other, but some die to drones or the zone. Only an
+        # early wave of deaths we did not cause means mechs are hunting each other: a free-for-all.
         others_dead = (self.n_mechs - self.alive) - self.kills
-        if others_dead >= 2 and t < 240.0:
-            self.mode = "ffa"
-        elif self.ffa_evidence >= 2:
+        if others_dead >= FFA_DEATHS and t < FFA_BEFORE_S:
             self.mode = "ffa"
 
     def _items(self, table, listed, t, mx, my, near):

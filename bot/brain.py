@@ -42,7 +42,7 @@ DEFAULTS = {
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
-    "unarmed_avoid": True,   # early on with only the gun, don't start distant fights (still shoot back)
+    "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
 
@@ -155,12 +155,24 @@ class Brain:
         self.handle_take_failures()
         self.track_progress()
 
-        enemies = self.assess_enemies()
-        target = self.choose_target(enemies)
-        goal = self.choose_goal(obs, enemies, target)
+        enemies, target, goal = [], None, ("roam", None)
+        try:
+            enemies = self.assess_enemies()
+            target = self.choose_target(enemies)
+            goal = self.choose_goal(obs, enemies, target)
+        except Exception:
+            self.fault("decide")
         self.goal = goal
-        move, boost, jump = self.move_for(goal, target, enemies, obs)
-        aim, fire, reload = self.aim_and_fire(target, enemies, move)
+        try:
+            move, boost, jump = self.move_for(goal, target, enemies, obs)
+        except Exception:
+            self.fault("move")
+            move, boost, jump = self.fallback_move(), False, False
+        try:
+            aim, fire, reload = self.aim_and_fire(target, enemies, move)
+        except Exception:
+            self.fault("aim")
+            aim, fire, reload = self.fallback_aim(target, move), [False, False], False
         act["move"] = [round(move[0], 4), round(move[1], 4)]
         act["boost"] = bool(boost)
         act["jump"] = bool(jump)
@@ -168,11 +180,43 @@ class Brain:
         act["fire"] = [bool(fire[0]), bool(fire[1])]
         if reload:
             act["reload"] = True
-        take = self.loot_action()
-        if take:
-            act.update(take)
+        try:
+            take = self.loot_action()
+            if take:
+                act.update(take)
+        except Exception:
+            self.fault("loot")
         self.last_move = move
         return act
+
+    # ================================================================== fault containment
+    def fault(self, where):
+        """A part of the brain failed this tick: log it (stderr) and let the others carry on."""
+        self.faults = getattr(self, "faults", 0) + 1
+        if self.faults <= 5 or self.faults % 200 == 0:
+            import sys
+            import traceback
+            print(f"fault in {where} at t={self.t:.1f} ({self.faults}):\n{traceback.format_exc()}", file=sys.stderr, flush=True)
+
+    def fallback_move(self):
+        """Head for the zone center in a straight line, sliding off walls."""
+        z = self.zone or {}
+        c = z.get("next_center") or z.get("center")
+        if not c:
+            return self.last_move
+        d = self.unit(c[0] - self.pos[0], c[1] - self.pos[1])
+        try:
+            return self.clear_dir(d)
+        except Exception:
+            return d
+
+    def fallback_aim(self, target, move):
+        if target is not None:
+            c = target.center
+            return (math.atan2(c[1] - self.muzzle[1], c[0] - self.muzzle[0]), 0.0)
+        if math.hypot(*move) > 0.1:
+            return (math.atan2(move[1], move[0]), 0.0)
+        return tuple(self.me.get("aim", (0.0, 0.0)))
 
     # ================================================================== perception
     def assess_enemies(self):
