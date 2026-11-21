@@ -54,7 +54,7 @@ DEFAULTS = {
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
-    "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
+    "engage_filter": "all",   # "approach": within engage_range, only fight enemies coming at us,
                               # that hurt us recently, that are very close, or that are weak
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
@@ -128,6 +128,8 @@ class Brain:
         self.explore_pt = None
         self.explore_t = -1e9
         self.visited = []
+        self.mortar_until = -1e9
+        self.mortar_block_until = -1e9
         self.duel = None
         self.duel_t = -1e9
         self.duel_tid = None
@@ -966,8 +968,14 @@ class Brain:
                                     pitch_lim=self.pitch_lim)
             if sol:
                 mortar_aim = (sol[0], sol[1])
-        if mortar_aim is not None and (gun is None or gun.get("reload", 0) > 0 or gun.get("ammo", 1) == 0
-                                       or self.rng.random() < 0.5):
+        # Commit the torso to a lob for up to 1 s once the mortar is ready (flip-flopping between the
+        # gun's aim and the mortar's each tick lined up neither); then let the gun work for a while.
+        if mortar_aim is None:
+            self.mortar_until = -1e9
+        elif self.t >= self.mortar_until and self.t >= self.mortar_block_until:
+            self.mortar_until = self.t + 1.0
+            self.mortar_block_until = self.t + 2.5
+        if mortar_aim is not None and self.t < self.mortar_until:
             aim = mortar_aim
             if angle_err(aim_now, aim) < 0.03:
                 fire[mi] = True
