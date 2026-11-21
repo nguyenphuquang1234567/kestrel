@@ -37,7 +37,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": ["plating", "armor", "nanites", "gun_mag", "laser_damage", "gun_damage", "laser_charge", "lightning_efficiency", "gun_rate", "gyros", "servos", "capacitor", "reactor", "jets", "sensors", "lightning_range", "lightning_chain", "gun_velocity", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
@@ -49,7 +49,7 @@ DEFAULTS = {
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
-    "farm_npcs": False,        # shoot drones for their cubes
+    "farm_npcs": True,        # shoot drones for their cubes
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
