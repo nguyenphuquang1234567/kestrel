@@ -26,7 +26,7 @@ DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
-    "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
+    "regen_hold_hp": 0.9,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.35,
     "gun_range": 110.0,       # preferred spacing with only a gun
@@ -50,7 +50,7 @@ DEFAULTS = {
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
-    "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
+    "lob": False,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "drops": True,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
