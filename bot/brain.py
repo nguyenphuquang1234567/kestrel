@@ -62,11 +62,11 @@ DEFAULTS = {
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
-    "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
+    "fight_boost": True,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
