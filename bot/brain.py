@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 2,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -83,10 +83,12 @@ DEFAULTS = {
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
-    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush": True,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
     "weapon_rush_d": 150.0,
     "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
+    "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
+    "check_six_s": 0.7,
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -1189,6 +1191,11 @@ class Brain:
         fire = [False, False]
         reload = False
         gi, gun = self.weapon("gun")
+        if self.P["check_six"]:
+            six = self.check_six(target)
+            if six is not None:
+                self.hold_laser(fire)
+                return (six, 0.0), fire, False
         if target is not None and target.los:
             aim, fire, reload = self.engage(target, aim_now, fire)
             if self.world.mode == "ffa" and self.goal[0] == "cover" and not self.provoked(target):
@@ -1258,6 +1265,22 @@ class Brain:
         fire = [False, False]
         fire[zi] = True
         return (yaw, clamp(pitch, *self.pitch_lim)), fire, False
+
+    def check_six(self, target):
+        """Yaw to look at an unseen attacker that hit us from behind in the last check_six_s seconds."""
+        w = self.world
+        for e in w.events:
+            if e.get("type") == "damaged" and e.get("rear") and e.get("bearing") is not None:
+                by = e.get("by")
+                if by is not None and by in w.enemies and w.enemies[by].visible:
+                    continue  # we can see it: target selection handles it
+                self._six = (self.t, float(e["bearing"]))
+        six = getattr(self, "_six", None)
+        if six is None or self.t - six[0] > self.P["check_six_s"]:
+            return None
+        if target is not None and target.los and target.hp_frac < 0.25:
+            return None  # finish the kill first
+        return six[1]
 
     def lob_shot(self, enemies, aim_now):
         """(aim, fire, reload) lobbing a mortar shell at a recently seen enemy we can't shoot directly."""
