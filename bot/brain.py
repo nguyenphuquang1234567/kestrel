@@ -51,11 +51,13 @@ DEFAULTS = {
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
+    "laser_evade": True,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
+    "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
-    "cube_value": 3.5,        # loot priorities (value / (distance + 25))
-    "crate_value": 2.4,
-    "npc_value": 3.0,
+    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
+    "crate_value": 1.6,
+    "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
@@ -335,7 +337,7 @@ class Brain:
             if target is not None:
                 return ("fight", target.tr.id)
 
-        if zone_urg >= 0.6:
+        if zone_urg >= self.P["zone_go"]:
             return ("zone", zone_pt)
         if self.hp_frac < 0.45 and recent_hit:
             return ("cover", None)
@@ -637,6 +639,43 @@ class Brain:
                 return esc
         return d
 
+    def laser_cover(self, enemies):
+        """Nearest walkable spot within 13 m hidden from an enemy charging a laser at us, or None."""
+        x, y = self.pos[0], self.pos[1]
+        threats = []
+        for e in enemies:
+            tr = e.tr
+            if not (tr.visible and tr.charging and "laser" in (tr.weapons or []) and e.d < 290.0):
+                continue
+            to_us = math.atan2(y - tr.pos[1], x - tr.pos[0])
+            if abs(wrap(tr.aim[0] - to_us)) < 0.15:
+                threats.append(e)
+        if not threats:
+            return None
+        e = min(threats, key=lambda e: e.d)
+        cache = getattr(self, "_laser_cover", None)
+        if cache and cache[0] == e.tr.id and self.t - cache[1] < 0.5:
+            return cache[2]
+        start = (x, y) if self.nav.is_walkable(x, y) else self.nav.nearest_walkable(x, y)
+        cands = []
+        for r in (5.0, 9.0, 13.0):
+            for k in range(12):
+                a = 2 * math.pi * k / 12
+                p = (x + r * math.cos(a), y + r * math.sin(a))
+                if self.nav.is_walkable(*p) and self.nav.walk_clear(start, p):
+                    cands.append(p)
+        best = None
+        if cands:
+            gz = self.map.ground_many([p[0] for p in cands], [p[1] for p in cands])
+            ctr = [(p[0], p[1], float(g) + 4.5) for p, g in zip(cands, gz)]
+            tp = e.tr.pos
+            seen = self.map.los_many((tp[0], tp[1], tp[2] + 8.0), ctr, step=1.0)
+            hidden = [p for p, v in zip(cands, seen) if not v]
+            if hidden:
+                best = min(hidden, key=lambda p: dist2(self.pos, p))
+        self._laser_cover = (e.tr.id, self.t, best)
+        return best
+
     def find_cover(self, threats):
         if self.cover is not None and self.t - self.cover_t < 1.0:
             return self.cover
@@ -780,8 +819,12 @@ class Brain:
         jump = False
         visible = [e for e in enemies if e.tr.visible]
 
+        evade = self.laser_cover(enemies) if self.P["laser_evade"] else None
         if self.t < self.unstick_until:
             d = self.unstick_dir
+        elif evade is not None:
+            d = self.unit(evade[0] - x, evade[1] - y) if dist2(self.pos, evade) > 1.5 else (0.0, 0.0)
+            boost = self.energy > 10
         elif kind == "fight" and target is not None:
             zone_urg, zone_pt = self.zone_need()
             self.kite_boost = False
