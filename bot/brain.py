@@ -25,7 +25,7 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.55, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
@@ -37,7 +37,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": ["laser_damage", "laser_charge", "gun_damage", "gun_mag", "plating", "armor", "lightning_efficiency", "nanites", "gun_rate", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
