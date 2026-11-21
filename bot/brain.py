@@ -32,9 +32,9 @@ DEFAULTS = {
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
-    "lightning_range": 40.0,
+    "lightning_range": 60.0,
     "mortar_value": 1.0,
-    "laser_value": 3.2,
+    "laser_value": 5.0,
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
