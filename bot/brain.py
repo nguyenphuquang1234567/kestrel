@@ -39,9 +39,9 @@ DEFAULTS = {
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
-    "strafe_min": 0.2,       # seconds between strafe direction changes in a fight (uniform min..max)
-    "strafe_max": 0.6,
-    "strafe_flip": 0.85,       # chance a change actually reverses direction
+    "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
+    "strafe_max": 1.1,
+    "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
@@ -62,6 +62,10 @@ DEFAULTS = {
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
+    "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
+    "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
+    "fight_boost_off": 25.0,
+    "lead_far": 0.65,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -150,6 +154,7 @@ class Brain:
         self.strafe = 1.0
         self.strafe_until = -1e9
         self.kite_boost = False
+        self.fight_boosting = False
         self.cover = None
         self.cover_t = -1e9
         self.explore_pt = None
@@ -901,6 +906,12 @@ class Brain:
         if self.t > self.strafe_until:
             self.strafe = -self.strafe if self.rng.random() < self.P["strafe_flip"] else self.strafe
             self.strafe_until = self.t + self.rng.uniform(self.P["strafe_min"], self.P["strafe_max"])
+        if P["fight_boost"] and "lightning" not in kinds:
+            if self.energy > P["fight_boost_on"]:
+                self.fight_boosting = True
+            elif self.energy < P["fight_boost_off"]:
+                self.fight_boosting = False
+            self.kite_boost = self.kite_boost or self.fight_boosting
         side = (-to[1] * self.strafe, to[0] * self.strafe)
         mx = to[0] * radial + side[0] * 0.9
         my = to[1] * radial + side[1] * 0.9
@@ -1115,7 +1126,9 @@ class Brain:
         direct = (direct[0], clamp(direct[1], *self.pitch_lim))
         aim = direct
         if gun is not None:
-            sol = combat.lead_aim(muzzle, ctr, vel, gun["stats"]["speed"], offset=self.radius + 0.5,
+            lf = 1.0 + (self.P["lead_far"] - 1.0) * clamp((e.d - 50.0) / 100.0, 0.0, 1.0)
+            gvel = (vel[0] * lf, vel[1] * lf, vel[2] * lf)
+            sol = combat.lead_aim(muzzle, ctr, gvel, gun["stats"]["speed"], offset=self.radius + 0.5,
                                   pitch_lim=self.pitch_lim)
             if sol:
                 aim = (sol[0], sol[1])
