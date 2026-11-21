@@ -32,7 +32,7 @@ DEFAULTS = {
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
-    "gun_range": 110.0,       # preferred spacing with only a gun
+    "gun_range": 90.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
@@ -81,7 +81,8 @@ DEFAULTS = {
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
-    "hunt_first": True,      # when healthy, go after the last seen enemy before looting
+    "hunt_first": False,      # when healthy, go after the last seen enemy before looting
+    "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -99,7 +100,7 @@ DEFAULTS = {
                               # that hurt us recently, that are very close, or that are weak
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
-    "hunt_hp": 0.8,           # ... only above this HP fraction
+    "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
@@ -188,6 +189,7 @@ class Brain:
         self.last_move = (0.0, 0.0)
         self.zone_hist = {}
         self.kill_spots = []
+        self.cover_until = -1e9
         self.t = 0.0
         gc.collect()
         gc.freeze()
@@ -394,7 +396,10 @@ class Brain:
                 if (losing or outnumbered and self.hp_frac < 0.7) or not (attacked or weak or (target and target.d < 40)):
                     return ("cover", None)
             elif losing or (outnumbered and self.hp_frac < self.P["multi_retreat_hp"]):
+                self.cover_until = self.t + self.P["cover_commit_s"]
                 return ("cover", None)
+            if self.t < self.cover_until:
+                return ("cover", None)  # committed: don't pop back out the moment line of sight breaks
             unarmed = len(self.weapons) < 2 or not self.weapons[1]
             if (target is not None and self.P["unarmed_avoid"] and unarmed and self.t < 150.0
                     and not recent_hit and target.d > 50.0 and self.t - target.tr.hurt_us_t > 5.0):
