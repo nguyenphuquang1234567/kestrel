@@ -39,9 +39,9 @@ DEFAULTS = {
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
-    "strafe_min": 0.25,       # seconds between strafe direction changes in a fight (uniform min..max)
-    "strafe_max": 0.8,
-    "strafe_flip": 0.8,       # chance a change actually reverses direction
+    "strafe_min": 0.2,       # seconds between strafe direction changes in a fight (uniform min..max)
+    "strafe_max": 0.6,
+    "strafe_flip": 0.85,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
