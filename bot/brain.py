@@ -32,12 +32,12 @@ DEFAULTS = {
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
-    "mortar_value": 1.0,
+    "mortar_value": 0.0,
     "laser_value": 3.2,
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": ["plating", "armor", "nanites", "gun_mag", "laser_damage", "gun_damage", "laser_charge", "lightning_efficiency", "gun_rate", "gyros", "servos", "capacitor", "reactor", "jets", "sensors", "lightning_range", "lightning_chain", "gun_velocity", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
@@ -50,6 +50,7 @@ DEFAULTS = {
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
+    "drops": True,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
@@ -424,6 +425,8 @@ class Brain:
         return best
 
     def drop_goal(self, obs, enemies):
+        if not self.P["drops"]:
+            return None
         best = None
         for d in obs.get("drops") or []:
             p = d.get("pos")
