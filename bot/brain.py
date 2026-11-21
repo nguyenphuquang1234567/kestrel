@@ -54,8 +54,9 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
-    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 0.0,
+    "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
+    "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
@@ -117,6 +118,7 @@ class Brain:
                                radius=mc.get("radius", 2.5), max_slope_deg=mc.get("max_slope_deg", 50.0))
         self.world = model.World(hello)
         self.roofs = roof.Roofs(self.map, self.nav)
+        self.open = geo.Openness(self.map)
         self.roof_target = None
         self.roof_bad = set()
         self.climb_t = None
@@ -494,7 +496,7 @@ class Brain:
             if math.hypot(p[0] - nc[0], p[1] - nc[1]) > max(nr * 0.85, 20.0):
                 continue
             novelty = min((dist2(p, v) for v in self.visited), default=150.0)
-            sc = min(novelty, 150.0) - 0.15 * r
+            sc = min(novelty, 150.0) - 0.15 * r - self.P["explore_open_w"] * self.open.at(*p)
             if sc > best_s:
                 best, best_s = p, sc
         if best is None:

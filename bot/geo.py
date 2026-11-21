@@ -265,3 +265,51 @@ class Map:
             crown_len = in_crown.sum(axis=1) * (L / k)
             return ~hit.any(axis=1) & (crown_len <= self.canopy_block_len)
         return ~hit.any(axis=1)
+
+
+class Openness:
+    """How exposed a spot is: the fraction of 16 directions in which an eye 8 m above the ground sees
+    a mech-height point `reach` meters away (buildings, terrain, trunks and canopy block). Computed on
+    a coarse grid at startup; low values mean short sightlines (good places to wait)."""
+
+    def __init__(self, m, cell=16.0, reach=120.0, dirs=16):
+        self.m = m
+        self.cell = cell
+        bx0, bx1, by0, by1 = m.bounds
+        self.x0, self.y0 = bx0, by0
+        self.nx = int((bx1 - bx0) // cell) + 1
+        self.ny = int((by1 - by0) // cell) + 1
+        xs = bx0 + (np.arange(self.nx) + 0.5) * cell
+        ys = by0 + (np.arange(self.ny) + 0.5) * cell
+        X, Y = np.meshgrid(xs, ys)
+        cx, cy = X.ravel(), Y.ravel()
+        gz = m.ground_many(cx, cy)
+        ang = np.arange(dirs) * (2 * np.pi / dirs)
+        ex = cx[:, None] + reach * np.cos(ang)[None, :]
+        ey = cy[:, None] + reach * np.sin(ang)[None, :]
+        ez = m.ground_many(ex.ravel(), ey.ravel()).reshape(ex.shape) + 4.5
+        A = np.stack([np.repeat(cx, dirs), np.repeat(cy, dirs), np.repeat(gz + 8.0, dirs)], axis=1)
+        B = np.stack([ex.ravel(), ey.ravel(), ez.ravel()], axis=1)
+        k = int(reach / 3.0)
+        t = (np.arange(k) + 0.5) / k
+        S = A[:, None, :] + (B - A)[:, None, :] * t[None, :, None]
+        x, y, z = S[..., 0], S[..., 1], S[..., 2]
+        fx, fy = x - m.x0, y - m.y0
+        ci = np.clip(np.floor(fx).astype(np.int64), 0, m.nx - 1)
+        cj = np.clip(np.floor(fy).astype(np.int64), 0, m.ny - 1)
+        vi, vj = np.minimum(ci, m.nx - 2), np.minimum(cj, m.ny - 2)
+        tx, ty = np.clip(fx - vi, 0, 1), np.clip(fy - vj, 0, 1)
+        g = m.ground
+        gzs = (g[vj, vi] * (1 - tx) + g[vj, vi + 1] * tx) * (1 - ty) + (g[vj + 1, vi] * (1 - tx) + g[vj + 1, vi + 1] * tx) * ty
+        hit = z < gzs
+        hit |= (m.ib0[cj, ci] <= z) & (z <= m.it0[cj, ci])
+        hit |= (m.ib1[cj, ci] <= z) & (z <= m.it1[cj, ci])
+        hit |= (m.trunk_lo[cj, ci] <= z) & (z <= m.trunk_hi[cj, ci])
+        crown = ((m.crown_lo[cj, ci] <= z) & (z <= m.crown_hi[cj, ci])).sum(axis=1) * (reach / k)
+        seen = ~hit.any(axis=1) & (crown <= m.canopy_block_len)
+        self.grid = seen.reshape(len(cx), dirs).mean(axis=1).reshape(self.ny, self.nx).astype(np.float32)
+
+    def at(self, x, y):
+        i = min(max(int((x - self.x0) // self.cell), 0), self.nx - 1)
+        j = min(max(int((y - self.y0) // self.cell), 0), self.ny - 1)
+        return float(self.grid[j, i])
