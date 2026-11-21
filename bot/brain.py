@@ -28,7 +28,7 @@ DEFAULTS = {
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.5,
+    "losing_hp": 0.35,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
@@ -53,6 +53,8 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
+    "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
+                              # "commit": hold the lob up to 1 s whenever the mortar is ready
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
@@ -972,7 +974,10 @@ class Brain:
                 mortar_aim = (sol[0], sol[1])
         # Commit the torso to a lob for up to 1 s once the mortar is ready (flip-flopping between the
         # gun's aim and the mortar's each tick lined up neither); then let the gun work for a while.
-        if mortar_aim is None:
+        gun_down = gun is None or gun.get("reload", 0) > 0 or gun.get("ammo", 1) == 0
+        if self.P["mortar_mode"] == "gun_down":
+            self.mortar_until = self.t + 0.2 if (mortar_aim is not None and gun_down) else -1e9
+        elif mortar_aim is None:
             self.mortar_until = -1e9
         elif self.t >= self.mortar_until and self.t >= self.mortar_block_until:
             self.mortar_until = self.t + 1.0
