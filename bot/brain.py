@@ -44,7 +44,7 @@ DEFAULTS = {
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
-    "retreat_boost_d": 60.0,  # boost while retreating when the nearest is closer than this
+    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
@@ -52,6 +52,10 @@ DEFAULTS = {
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
+    "farm_radius": 110.0,      # shoot crates and drones in sight within this range
+    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
+    "crate_value": 1.6,
+    "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
@@ -526,18 +530,18 @@ class Brain:
             if s > best_s:
                 best, best_s = ("pickup", i, rec["pos"]), s
         for i, rec in w.cubes.items():
-            s = score(rec["pos"], 2.6)
+            s = score(rec["pos"], self.P["cube_value"])
             if s > best_s:
                 best, best_s = ("cube", i, rec["pos"]), s
         for i, rec in w.crates.items():
-            s = score(rec["pos"], 1.6)
+            s = score(rec["pos"], self.P["crate_value"])
             if s > best_s:
                 best, best_s = ("crate", i, rec["pos"]), s
         if self.P["farm_npcs"] and self.hp_frac > 0.7 and self.t < 300.0:
             for i, tr in w.npcs.items():
                 if self.t - tr.seen_t > 5.0:
                     continue
-                s = score(tr.pos, 2.2 * (0.5 + 0.5 * self.hp_frac))
+                s = score(tr.pos, self.P["npc_value"] * (0.5 + 0.5 * self.hp_frac))
                 if s > best_s:
                     best, best_s = ("npc", i, tr.pos), s
         return best
@@ -1028,7 +1032,7 @@ class Brain:
                 if tr.visible:
                     p = tr.pos
                     cands.append((dist2(self.pos, p) - 10.0, p, (p[0], p[1], p[2] + 1.75)))
-        cands = [c for c in cands if c[0] < 70.0]
+        cands = [c for c in cands if c[0] < self.P["farm_radius"]]
         if not cands:
             return None
         cands.sort(key=lambda c: c[0])
