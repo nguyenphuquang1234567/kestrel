@@ -28,7 +28,7 @@ DEFAULTS = {
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.65,
+    "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
@@ -38,9 +38,9 @@ DEFAULTS = {
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
-    "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
-    "strafe_max": 1.1,
-    "strafe_flip": 0.7,       # chance a change actually reverses direction
+    "strafe_min": 0.6,       # seconds between strafe direction changes in a fight (uniform min..max)
+    "strafe_max": 1.6,
+    "strafe_flip": 0.6,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
