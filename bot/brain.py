@@ -23,7 +23,7 @@ UPGRADE_ORDER = ["plating", "gun_mag", "armor", "gun_damage", "lightning_efficie
 SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", "boost", "jet", "reload"}
 
 DEFAULTS = {
-    "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
+    "kite_range": 55.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.75, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
@@ -41,6 +41,8 @@ DEFAULTS = {
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
+    "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
+    "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
 
@@ -240,6 +242,10 @@ class Brain:
                     return ("cover", None)
             elif losing or (outnumbered and self.hp_frac < self.P["multi_retreat_hp"]):
                 return ("cover", None)
+            unarmed = len(self.weapons) < 2 or not self.weapons[1]
+            if (target is not None and self.P["unarmed_avoid"] and unarmed and self.t < 150.0
+                    and not recent_hit and target.d > 50.0 and self.t - target.tr.hurt_us_t > 5.0):
+                target = None  # find a weapon first; the torso still shoots if they come at us
             if target is not None:
                 return ("fight", target.tr.id)
 
@@ -335,7 +341,7 @@ class Brain:
             return 0.0
         v = WEAPON_VALUE.get(kind, 0.0)
         if len(kinds) < 2 or kinds[1] is None:
-            return v
+            return v * self.P["empty_slot_mult"]
         return max(0.0, v - WEAPON_VALUE.get(kinds[1], 0.0))
 
     def loot_goal(self, enemies):
