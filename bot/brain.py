@@ -47,7 +47,7 @@ DEFAULTS = {
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
-    "explore": True,          # idle inside the zone: go look for loot (else hold position)
+    "explore": False,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
