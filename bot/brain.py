@@ -28,7 +28,7 @@ DEFAULTS = {
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.5,
+    "losing_hp": 0.35,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
@@ -49,7 +49,7 @@ DEFAULTS = {
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 110.0,    # visible enemies closer than this get fought
+    "engage_range": 140.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
