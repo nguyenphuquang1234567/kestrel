@@ -36,7 +36,7 @@ DEFAULTS = {
     "laser_value": 3.2,
     "lightning_value": 3.0,
     "reload_hidden": True,
-    "force_mode": None,       # arena only: pin "squad" or "ffa"
+    "force_mode": "ffa",       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
@@ -47,7 +47,7 @@ DEFAULTS = {
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 110.0,    # visible enemies closer than this get fought
+    "engage_range": 160.0,    # visible enemies closer than this get fought
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
