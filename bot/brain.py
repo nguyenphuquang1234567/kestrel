@@ -54,9 +54,11 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
-    "explore_open_w": 40.0,    # exploring: penalty per unit of openness (prefer short sightlines)
+    "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
+    "fight_open_w": 1.0,      # fighting: pull toward nearby spots with shorter sightlines
+    "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -753,6 +755,22 @@ class Brain:
         self._laser_cover = (e.tr.id, self.t, best)
         return best
 
+    def shelter_dir(self, step=16.0):
+        """Unit direction toward the least exposed walkable spot one grid cell away, if clearly better."""
+        x, y = self.pos[0], self.pos[1]
+        here = self.open.at(x, y)
+        best = None
+        for k in range(8):
+            a = k * math.pi / 4.0
+            c, s_ = math.cos(a), math.sin(a)
+            q = (x + step * c, y + step * s_)
+            if not self.nav.is_walkable(*q):
+                continue
+            o = self.open.at(*q)
+            if o < here - 0.05 and (best is None or o < best[0]):
+                best = (o, (c, s_))
+        return best[1] if best else None
+
     def find_cover(self, threats):
         if self.cover is not None and self.t - self.cover_t < 1.0:
             return self.cover
@@ -780,7 +798,7 @@ class Brain:
         nc = self.zone.get("next_center")
         nr = float(self.zone.get("next_radius", 1e4))
         for p, ex in zip(cands, exposed):
-            s = -ex * 100.0 - dist2(self.pos, p) * 0.8
+            s = -ex * 100.0 - dist2(self.pos, p) * 0.8 - self.P["cover_open_w"] * self.open.at(p[0], p[1])
             s += 0.3 * min(dist2(p, e.tr.pos) for e in threats)
             if nc and math.hypot(p[0] - nc[0], p[1] - nc[1]) > nr:
                 s -= 40.0
@@ -882,6 +900,10 @@ class Brain:
         mx = to[0] * radial + side[0] * 0.9
         my = to[1] * radial + side[1] * 0.9
         dvec = self.unit(mx, my)
+        if self.P["fight_open_w"]:
+            sh = self.shelter_dir()
+            if sh is not None:
+                dvec = self.unit(dvec[0] + self.P["fight_open_w"] * sh[0], dvec[1] + self.P["fight_open_w"] * sh[1])
         if not self.on_roof and not self.can_go(dvec):
             self.strafe = -self.strafe
             self.strafe_until = self.t + 0.8
