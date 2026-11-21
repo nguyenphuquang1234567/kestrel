@@ -43,12 +43,13 @@ DEFAULTS = {
     "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
-    "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
+    "fight_retreat": False,   # with 2+ enemies engaged, back away from them while shooting
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
-    "hold_fire_beyond": True, # don't shoot enemies beyond engage_range unless they attacked us
+    "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
+    "farm_npcs": True,        # shoot drones for their cubes
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
@@ -506,7 +507,7 @@ class Brain:
             s = score(rec["pos"], 1.6)
             if s > best_s:
                 best, best_s = ("crate", i, rec["pos"]), s
-        if self.hp_frac > 0.7 and self.t < 300.0:
+        if self.P["farm_npcs"] and self.hp_frac > 0.7 and self.t < 300.0:
             for i, tr in w.npcs.items():
                 if self.t - tr.seen_t > 5.0:
                     continue
@@ -946,7 +947,7 @@ class Brain:
             if self.t - rec["t"] < 0.5:
                 p = rec["pos"]
                 cands.append((dist2(self.pos, p), p, (p[0], p[1], p[2] + 1.2)))
-        if self.hp_frac > 0.55:
+        if self.P["farm_npcs"] and self.hp_frac > 0.55:
             for i, tr in w.npcs.items():
                 if tr.visible:
                     p = tr.pos
