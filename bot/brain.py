@@ -3,7 +3,9 @@
 - where the torso aims and what fires (enemy, crate or drone, or a scan sweep),
 then add loot and upgrade actions."""
 import gc
+import json
 import math
+import os
 import random
 import time
 
@@ -19,6 +21,33 @@ UPGRADE_ORDER = ["plating", "gun_mag", "armor", "gun_damage", "lightning_efficie
                  "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors",
                  "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"]
 SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", "boost", "jet", "reload"}
+
+DEFAULTS = {
+    "kite_range": 55.0,       # keep lightning carriers at least this far when we lack lightning
+    "kite": True,
+    "multi_retreat_hp": 0.75, # with 2+ enemies engaging, take cover below this HP fraction
+    "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
+    "regen_hold": True,
+    "losing_hp": 0.35,
+    "gun_range": 85.0,        # preferred spacing with only a gun
+    "laser_range": 100.0,
+    "lightning_range": 26.0,
+    "mortar_value": 1.0,
+    "laser_value": 2.6,
+    "lightning_value": 3.0,
+    "reload_hidden": True,
+}
+
+
+def load_params():
+    p = dict(DEFAULTS)
+    raw = os.environ.get("KESTREL_PARAMS")
+    if raw:
+        try:
+            p.update(json.loads(raw))
+        except ValueError:
+            pass
+    return p
 
 
 def dist2(a, b):
@@ -48,6 +77,9 @@ class Brain:
         self.nav = nav.NavGrid(self.map, step_up=mc.get("step_up", 1.2), height=mc.get("height", 9.0),
                                radius=mc.get("radius", 2.5), max_slope_deg=mc.get("max_slope_deg", 50.0))
         self.world = model.World(hello)
+        self.P = load_params()
+        WEAPON_VALUE.update({"mortar": self.P["mortar_value"], "laser": self.P["laser_value"],
+                             "lightning": self.P["lightning_value"]})
         self.rng = random.Random(int(hello.get("seed", 1)))
         self.wcfg = cfg["weapons"]
         self.pickup_r = float(cfg["loot"]["pickup_radius"])
@@ -64,6 +96,7 @@ class Brain:
         self.jet_until = -1e9
         self.strafe = 1.0
         self.strafe_until = -1e9
+        self.kite_boost = False
         self.cover = None
         self.cover_t = -1e9
         self.goal = ("roam", None)
@@ -186,14 +219,15 @@ class Brain:
         if close:
             power = sum(self.threat_level(e) for e in close)
             mine = 100.0 + sum(WEAPON_VALUE.get(wp["kind"], 0) * 40.0 for wp in self.weapons if wp)
-            outnumbered = len(close) >= 2 and power > mine * 1.3
-            losing = target is not None and self.hp_frac < 0.35 and target.hp_frac > self.hp_frac + 0.1
+            engaging = [e for e in close if e.los or self.t - e.tr.hurt_us_t < 3.0]
+            outnumbered = len(engaging) >= 2 and power > mine * 1.3
+            losing = target is not None and self.hp_frac < self.P["losing_hp"] and target.hp_frac > self.hp_frac + 0.1
             if w.mode == "ffa":
                 attacked = recent_hit or any(self.t - e.tr.hurt_us_t < 4.0 for e in close)
                 weak = target is not None and target.hp_frac < 0.4 and target.d < 110 and self.hp_frac > 0.6
                 if (losing or outnumbered and self.hp_frac < 0.7) or not (attacked or weak or (target and target.d < 40)):
                     return ("cover", None)
-            elif losing or (outnumbered and self.hp_frac < 0.55):
+            elif losing or (outnumbered and self.hp_frac < self.P["multi_retreat_hp"]):
                 return ("cover", None)
             if target is not None:
                 return ("fight", target.tr.id)
@@ -201,6 +235,9 @@ class Brain:
         if zone_urg >= 0.6:
             return ("zone", zone_pt)
         if self.hp_frac < 0.45 and recent_hit:
+            return ("cover", None)
+        if (self.P["regen_hold"] and self.hp_frac < self.P["regen_hold_hp"]
+                and self.t - w.last_damage_t() < 30.0 and any(self.t - e.tr.seen_t < 20.0 for e in enemies)):
             return ("cover", None)
 
         drop = self.drop_goal(obs, enemies)
@@ -455,17 +492,24 @@ class Brain:
         tx, ty = target.tr.pos[0], target.tr.pos[1]
         d = math.hypot(tx - x, ty - y)
         kinds = self.slot_kinds()
-        want = 70.0
+        P = self.P
+        want = P["gun_range"]
         if "laser" in kinds:
-            want = 95.0
+            want = P["laser_range"]
         if "lightning" in kinds and self.energy > 15:
-            want = 26.0
-        if "lightning" in target.tr.weapons and "lightning" not in kinds:
-            want = max(want, 60.0)
+            want = P["lightning_range"]
+        kiting = P["kite"] and "lightning" in target.tr.weapons and ("lightning" not in kinds or self.energy < 15)
+        if kiting:
+            want = max(want, P["kite_range"])
         if self.hp_frac < 0.4:
             want += 25.0
         to = self.unit(tx - x, ty - y)
         radial = clamp((d - want) / 25.0, -1.0, 1.0)
+        if kiting and d < P["kite_range"] + 5.0:
+            self.kite_boost = True
+            dvec = self.unit(-to[0] + (-to[1]) * self.strafe * 0.35, -to[1] + to[0] * self.strafe * 0.35)
+            if self.on_roof or self.nav.walk_clear((x, y), (x + dvec[0] * 6, y + dvec[1] * 6)):
+                return dvec
         if self.t > self.strafe_until:
             self.strafe = -self.strafe if self.rng.random() < 0.7 else self.strafe
             self.strafe_until = self.t + self.rng.uniform(0.35, 1.1)
@@ -491,10 +535,12 @@ class Brain:
             d = self.unstick_dir
         elif kind == "fight" and target is not None:
             zone_urg, zone_pt = self.zone_need()
+            self.kite_boost = False
             if zone_urg >= 0.8 and zone_pt:
                 d = self.follow(zone_pt)
             else:
                 d = self.fight_move(target, enemies)
+                boost = self.kite_boost and self.energy > 8
         elif kind == "cover":
             c = self.find_cover(visible or enemies)
             if c is not None:
@@ -585,7 +631,9 @@ class Brain:
                     fire[li] = True
                 return aim, fire, False
         if gun is not None and gun.get("ammo", 99) < gun["stats"].get("mag", 12) * 0.6 and not gun.get("reload"):
-            if self.t - self.world.last_damage_t() > 2.0 and not any(e.tr.visible for e in enemies):
+            hidden = not any(e.los for e in enemies)
+            if (self.P["reload_hidden"] and hidden) or (
+                    self.t - self.world.last_damage_t() > 2.0 and not any(e.tr.visible for e in enemies)):
                 reload = True
         return self.scan_aim(enemies, move), fire, reload
 
