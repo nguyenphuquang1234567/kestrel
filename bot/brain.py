@@ -51,10 +51,10 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
-    "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
+    "target_hp_weight": 250.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
-    "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
+    "engage_filter": "all",   # "approach": within engage_range, only fight enemies coming at us,
                               # that hurt us recently, that are very close, or that are weak
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
