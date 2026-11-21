@@ -57,7 +57,7 @@ DEFAULTS = {
     "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
-    "fight_open_w": 1.0,      # fighting: pull toward nearby spots with shorter sightlines
+    "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
@@ -66,8 +66,8 @@ DEFAULTS = {
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
-    "retreat_open_w": 1.5,    # fighting retreat: pull toward nearby spots with shorter sightlines
+    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
