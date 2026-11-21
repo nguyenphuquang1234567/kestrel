@@ -29,8 +29,8 @@ DEFAULTS = {
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.35,
-    "gun_range": 130.0,       # preferred spacing with only a gun
-    "laser_range": 140.0,
+    "gun_range": 110.0,       # preferred spacing with only a gun
+    "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
@@ -48,6 +48,7 @@ DEFAULTS = {
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
+    "hold_fire_beyond": True, # don't shoot enemies beyond engage_range unless they attacked us
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
@@ -833,6 +834,10 @@ class Brain:
             aim, fire, reload = self.engage(target, aim_now, fire)
             if self.world.mode == "ffa" and self.goal[0] == "cover" and not self.provoked(target):
                 fire = [False, False]  # avoiding this fight: shooting would only draw it to us
+            elif (self.P["hold_fire_beyond"] and target.d > self.P["engage_range"]
+                  and self.t - self.world.last_damage_t() > 4.0 and self.t - target.tr.hurt_us_t > 6.0):
+                fire = [False, False]  # not our fight (yet): don't provoke it from range
+                self.hold_laser(fire)
             return aim, fire, reload
         # farm crates and drones when no mech is in our sights
         farm = self.farm_target()
