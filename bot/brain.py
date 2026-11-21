@@ -79,6 +79,7 @@ DEFAULTS = {
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "heal_hide": True,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
+    "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -410,9 +411,11 @@ class Brain:
         if (self.P["regen_hold"] and self.hp_frac < self.P["regen_hold_hp"]
                 and self.t - w.last_damage_t() < 30.0 and any(self.t - e.tr.seen_t < 20.0 for e in enemies)):
             return ("cover", None)
-        if (self.P["heal_hide"] and self.P["regen_hold"] and self.hp_frac < self.P["regen_hold_hp"]
-                and self.t - w.last_damage_t() < 30.0 and self.remembered_threats()):
-            return ("cover", None)
+        if self.P["heal_hide"] and self.P["regen_hold"] and self.t - w.last_damage_t() < 30.0:
+            if self.hp_frac < self.P["regen_hold_hp"] and self.remembered_threats():
+                return ("cover", None)
+            if self.hp_frac < self.P["hide_hp"]:
+                return ("cover", None)
 
         drop = self.drop_goal(obs, enemies)
         if drop is not None:
@@ -872,6 +875,25 @@ class Brain:
                 best = (o, (c, s_))
         return best[1] if best else None
 
+    def hide_spot(self):
+        """A nearby walkable spot with the shortest sightlines (no known threat to hide from)."""
+        if getattr(self, "_hide", None) is not None and self.t - self._hide[0] < 3.0:
+            return self._hide[1]
+        x, y = self.pos[0], self.pos[1]
+        start = (x, y) if self.nav.is_walkable(x, y) else self.nav.nearest_walkable(x, y)
+        best = ((self.open.at(x, y), 0.0), (x, y))
+        for r in (10.0, 20.0, 30.0, 45.0):
+            for k in range(12):
+                a = 2 * math.pi * k / 12
+                p = (x + r * math.cos(a), y + r * math.sin(a))
+                if not self.nav.is_walkable(*p) or not self.nav.walk_clear(start, p):
+                    continue
+                key = (self.open.at(*p) + 0.002 * r, r)
+                if key < best[0]:
+                    best = (key, p)
+        self._hide = (self.t, best[1])
+        return best[1]
+
     def find_cover(self, threats):
         if self.cover is not None and self.t - self.cover_t < 1.0:
             return self.cover
@@ -1056,7 +1078,7 @@ class Brain:
             threats = visible or enemies
             if not threats and self.P["heal_hide"]:
                 threats = self.remembered_threats()
-            c = self.find_cover(threats)
+            c = self.find_cover(threats) if threats else (self.hide_spot() if self.P["heal_hide"] else None)
             if c is not None:
                 d = self.follow(c) if dist2(self.pos, c) > 2.5 else (0.0, 0.0)
             else:
