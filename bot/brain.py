@@ -52,10 +52,10 @@ DEFAULTS = {
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 110.0,      # shoot crates and drones in sight within this range
-    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "cube_value": 3.5,        # loot priorities (value / (distance + 25))
+    "crate_value": 2.4,
+    "npc_value": 3.0,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
