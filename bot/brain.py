@@ -74,7 +74,7 @@ DEFAULTS = {
     "precharge_d": 90.0,
     "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
-    "quit_after_kills": 1,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
+    "quit_after_kills": 3,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
