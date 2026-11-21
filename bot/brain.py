@@ -32,7 +32,7 @@ DEFAULTS = {
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
-    "lightning_range": 60.0,
+    "lightning_range": 40.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
     "lightning_value": 3.0,
@@ -62,7 +62,7 @@ DEFAULTS = {
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
-    "fight_boost": True,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
+    "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
