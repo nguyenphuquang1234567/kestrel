@@ -25,7 +25,7 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.75, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.35,
@@ -43,6 +43,12 @@ DEFAULTS = {
     "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
+    "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
+    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
+    "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
+    "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
+    "pair": False,            # with laser or lightning held, swap the gun for the other one
+    "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
 
@@ -107,6 +113,9 @@ class Brain:
         self.kite_boost = False
         self.cover = None
         self.cover_t = -1e9
+        self.explore_pt = None
+        self.explore_t = -1e9
+        self.visited = []
         self.duel = None
         self.duel_t = -1e9
         self.duel_tid = None
@@ -307,6 +316,8 @@ class Brain:
         item = self.loot_goal(enemies)
         if item is not None:
             return ("loot", item)
+        if zone_pt is None or dist2(self.pos, zone_pt) < 15.0:
+            return ("explore", self.explore_point())
         return ("roam", zone_pt)
 
     def zone_circle(self):
@@ -355,6 +366,38 @@ class Brain:
             return 1.6, pt
         return travel / left, pt
 
+    def explore_point(self):
+        """Somewhere new inside the next safe circle to look for loot (kept until reached or stale)."""
+        x, y = self.pos[0], self.pos[1]
+        if (self.explore_pt is not None and dist2(self.pos, self.explore_pt) > 12.0
+                and self.t - self.explore_t < 30.0 and self.stuck < 0.5):
+            return self.explore_pt
+        self.visited.append((x, y))
+        if self.explore_pt is not None:
+            self.visited.append(self.explore_pt)
+        self.visited = self.visited[-40:]
+        nc = self.zone.get("next_center") or (x, y)
+        nr = float(self.zone.get("next_radius", 300.0))
+        here = self.nav.component(x, y)
+        best, best_s = None, -1e9
+        for _ in range(20):
+            a = self.rng.uniform(0.0, 2.0 * math.pi)
+            r = self.rng.uniform(60.0, 170.0)
+            p = (x + r * math.cos(a), y + r * math.sin(a))
+            if not self.nav.is_walkable(*p) or (here >= 0 and self.nav.component(*p) != here):
+                continue
+            if math.hypot(p[0] - nc[0], p[1] - nc[1]) > max(nr * 0.85, 20.0):
+                continue
+            novelty = min((dist2(p, v) for v in self.visited), default=150.0)
+            sc = min(novelty, 150.0) - 0.15 * r
+            if sc > best_s:
+                best, best_s = p, sc
+        if best is None:
+            best = self.nav.nearest_walkable(nc[0], nc[1])
+        self.explore_pt = best
+        self.explore_t = self.t
+        return best
+
     def drop_goal(self, obs, enemies):
         best = None
         for d in obs.get("drops") or []:
@@ -379,14 +422,27 @@ class Brain:
     def slot_kinds(self):
         return [wp["kind"] if wp else None for wp in self.weapons]
 
-    def want_weapon(self, kind):
-        kinds = self.slot_kinds()
+    def take_plan(self, kind):
+        """(value, slot to drop or None) for taking a pickup of this kind; value 0 means leave it."""
+        kinds = list(self.slot_kinds()) + [None] * (2 - len(self.slot_kinds()))
         if kind in kinds:
-            return 0.0
+            return 0.0, None
         v = WEAPON_VALUE.get(kind, 0.0)
-        if len(kinds) < 2 or kinds[1] is None:
-            return v * self.P["empty_slot_mult"]
-        return max(0.0, v - WEAPON_VALUE.get(kinds[1], 0.0))
+        if None in kinds:
+            return v * self.P["empty_slot_mult"], None
+        if self.P["pair"] and "gun" in kinds and kind in ("laser", "lightning"):
+            other = "lightning" if kind == "laser" else "laser"
+            if other in kinds:
+                return v, kinds.index("gun")
+        if "gun" in kinds:
+            rep = 1 - kinds.index("gun")
+        else:
+            rep = 0 if WEAPON_VALUE.get(kinds[0], 0.0) <= WEAPON_VALUE.get(kinds[1], 0.0) else 1
+        gain = v - WEAPON_VALUE.get(kinds[rep], 0.0)
+        return (gain, rep) if gain > 0 else (0.0, None)
+
+    def want_weapon(self, kind):
+        return self.take_plan(kind)[0]
 
     def loot_goal(self, enemies):
         w = self.world
@@ -408,7 +464,7 @@ class Brain:
             if nc and math.hypot(pos[0] - nc[0], pos[1] - nc[1]) > nr:
                 s *= 0.5
             for e in enemies:
-                if e.tr.visible and dist2(e.tr.pos, pos) < 50.0:
+                if self.t - e.tr.seen_t < 10.0 and dist2(e.tr.predict(self.t), pos) < self.P["loot_enemy_r"]:
                     s *= 0.4
             return s
 
@@ -450,7 +506,7 @@ class Brain:
 
     def goal_point(self, goal, target):
         kind, arg = goal
-        if kind == "zone" or kind == "roam":
+        if kind == "zone" or kind == "roam" or kind == "explore":
             return arg
         if kind == "drop":
             return arg
@@ -588,6 +644,20 @@ class Brain:
     def fight_move(self, target, enemies):
         """Spacing plus a strafe that changes direction at random intervals."""
         x, y = self.pos[0], self.pos[1]
+        if self.P["fight_retreat"]:
+            engaged = [e for e in enemies if self.t - e.tr.seen_t < self.P["retreat_seen_s"] and e.d < 200.0]
+            if len(engaged) >= 2:
+                ax = sum((x - e.tr.pos[0]) / max(e.d, 1.0) ** 2 for e in engaged)
+                ay = sum((y - e.tr.pos[1]) / max(e.d, 1.0) ** 2 for e in engaged)
+                away = self.unit(ax, ay)
+                near = min(engaged, key=lambda e: e.d)
+                to = self.unit(near.tr.pos[0] - x, near.tr.pos[1] - y)
+                if self.t > self.strafe_until:
+                    self.strafe = -self.strafe if self.rng.random() < self.P["strafe_flip"] else self.strafe
+                    self.strafe_until = self.t + self.rng.uniform(self.P["strafe_min"], self.P["strafe_max"])
+                side = (-to[1] * self.strafe, to[0] * self.strafe)
+                self.kite_boost = near.d < self.P["retreat_boost_d"]
+                return self.unit(away[0] + side[0] * 0.5, away[1] + side[1] * 0.5)
         if self.P["duel"]:
             others = [e for e in enemies if e.tr.id != target.tr.id and self.t - e.tr.seen_t < 5.0 and e.d < 220.0]
             if others:
@@ -604,6 +674,8 @@ class Brain:
             want = P["laser_range"]
         if "lightning" in kinds and self.energy > 15:
             want = P["lightning_range"]
+        if "gun" not in kinds and "laser" in kinds and "lightning" in kinds and self.energy > 20:
+            want = P["pair_range"]
         kiting = P["kite"] and "lightning" in target.tr.weapons and ("lightning" not in kinds or self.energy < 15)
         if kiting:
             want = max(want, P["kite_range"])
@@ -881,13 +953,13 @@ class Brain:
                 best = (v, i, rec.get("kind"))
         if best is None:
             return None
-        kinds = self.slot_kinds()
         out = {"take": best[1]}
-        if None not in kinds:
+        _, slot = self.take_plan(best[2])
+        if slot is not None:
             zi, lz = self.weapon("laser")
-            if zi == 1 and lz and lz.get("charge", 0) > 0:
-                return None
-            out["drop"] = 1
+            if zi == slot and lz and lz.get("charge", 0) > 0:
+                return None  # a charging laser can't be dropped
+            out["drop"] = slot
         return out
 
     def handle_take_failures(self):
