@@ -47,6 +47,9 @@ DEFAULTS = {
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
+    "engage_range": 260.0,    # visible enemies closer than this get fought
+    "hunt": True,            # idle and healthy: go after the most recently seen enemy
+    "hunt_hp": 0.6,           # ... only above this HP fraction
     "pair": False,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
@@ -276,7 +279,7 @@ class Brain:
         w = self.world
         zone_urg, zone_pt = self.zone_need()
         visible = [e for e in enemies if e.tr.visible]
-        close = [e for e in visible if e.d < 160.0]
+        close = [e for e in visible if e.d < self.P["engage_range"]]
         recent_hit = self.t - w.last_damage_t() < 3.0
 
         if zone_urg >= 1.5:
@@ -316,6 +319,10 @@ class Brain:
         item = self.loot_goal(enemies)
         if item is not None:
             return ("loot", item)
+        if self.P["hunt"] and self.hp_frac >= self.P["hunt_hp"] and zone_urg < 0.4:
+            prey = self.hunt_point(enemies)
+            if prey is not None:
+                return ("hunt", prey)
         if zone_pt is None or dist2(self.pos, zone_pt) < 15.0:
             return ("explore", self.explore_point())
         return ("roam", zone_pt)
@@ -365,6 +372,22 @@ class Brain:
         if left <= 0:
             return 1.6, pt
         return travel / left, pt
+
+    def hunt_point(self, enemies):
+        """Where the most recently seen enemy probably is (seen in the last 45 s, inside the zone)."""
+        best = None
+        nc = self.zone.get("next_center")
+        nr = float(self.zone.get("next_radius", 1e4))
+        for tr in self.world.enemies.values():
+            age = self.t - tr.seen_t
+            if age > 45.0:
+                continue
+            p = tr.predict(self.t)
+            if nc and math.hypot(p[0] - nc[0], p[1] - nc[1]) > nr * 1.1:
+                continue
+            if best is None or age < best[0]:
+                best = (age, (p[0], p[1]))
+        return best[1] if best else None
 
     def explore_point(self):
         """Somewhere new inside the next safe circle to look for loot (kept until reached or stale)."""
@@ -506,7 +529,7 @@ class Brain:
 
     def goal_point(self, goal, target):
         kind, arg = goal
-        if kind == "zone" or kind == "roam" or kind == "explore":
+        if kind == "zone" or kind == "roam" or kind == "explore" or kind == "hunt":
             return arg
         if kind == "drop":
             return arg
