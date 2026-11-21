@@ -37,7 +37,7 @@ DEFAULTS = {
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 5.0,
-    "lightning_value": 3.0,
+    "lightning_value": 2.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
     "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
