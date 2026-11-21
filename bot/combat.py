@@ -158,3 +158,25 @@ def dodge_vector(me, shots, gravity, splash, horizon=0.6, mortar_horizon=3.5):
     if n < 1e-9:
         return None
     return ax / n, ay / n
+
+
+def arc_points(tube, yaw, pitch, speed, gravity, t_flight, offset=0.0, n=14):
+    """Sample points along a shell's flight from launch to landing."""
+    cp = math.cos(pitch)
+    d = (cp * math.cos(yaw), cp * math.sin(yaw), math.sin(pitch))
+    o = (tube[0] + d[0] * offset, tube[1] + d[1] * offset, tube[2] + d[2] * offset)
+    v = (d[0] * speed, d[1] * speed, d[2] * speed)
+    pts = []
+    for k in range(n + 1):
+        t = t_flight * k / n
+        pts.append((o[0] + v[0] * t, o[1] + v[1] * t, o[2] + v[2] * t - 0.5 * gravity * t * t))
+    return pts
+
+
+def arc_clear(m, tube, yaw, pitch, speed, gravity, t_flight, offset=0.0):
+    """True if the shell's path (all but the final approach) stays clear of buildings and terrain."""
+    pts = arc_points(tube, yaw, pitch, speed, gravity, t_flight * 0.93, offset)
+    for a, b in zip(pts, pts[1:]):
+        if not m.los(a, b, step=1.0):
+            return False
+    return True

@@ -44,12 +44,13 @@ DEFAULTS = {
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
-    "retreat_boost_d": 130.0,  # boost while retreating when the nearest is closer than this
+    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "farm_npcs": True,        # shoot drones for their cubes
+    "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "drops": True,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
@@ -843,6 +844,10 @@ class Brain:
                 fire = [False, False]  # not our fight (yet): don't provoke it from range
                 self.hold_laser(fire)
             return aim, fire, reload
+        if self.P["lob"]:
+            lob = self.lob_shot(enemies, aim_now)
+            if lob is not None:
+                return lob
         # farm crates and drones when no mech is in our sights
         farm = self.farm_target()
         if farm is not None:
@@ -867,6 +872,43 @@ class Brain:
                 reload = True
         self.hold_laser(fire)
         return self.scan_aim(enemies, move), fire, reload
+
+    def lob_shot(self, enemies, aim_now):
+        """(aim, fire, reload) lobbing a mortar shell at a recently seen enemy we can't shoot directly."""
+        mi, mo = self.weapon("mortar")
+        if mo is None or mo.get("cooldown", 1.0) > 0.0:
+            return None
+        st = mo["stats"]
+        tube = (self.pos[0], self.pos[1], self.pos[2] + self.height + 0.5)
+        best = None
+        for e in enemies:
+            if self.t - e.tr.seen_t > 3.0 or e.los:
+                continue
+            p = e.tr.predict(self.t)
+            d = dist2(self.pos, p)
+            if not 35.0 <= d <= 220.0:
+                continue
+            if best is None or d < best[0]:
+                best = (d, e, p)
+        if best is None:
+            return None
+        d, e, p = best
+        vel = (e.tr.vel[0], e.tr.vel[1], 0.0)
+        for high in (False, True):
+            sol = combat.mortar_aim(tube, (p[0], p[1], p[2]), vel, st["speed"], st.get("gravity", self.gravity),
+                                    offset=self.radius + 0.5, high=high, pitch_lim=self.pitch_lim)
+            if sol is None:
+                continue
+            if not combat.arc_clear(self.map, tube, sol[0], sol[1], st["speed"], st.get("gravity", self.gravity),
+                                    sol[2], offset=self.radius + 0.5):
+                continue
+            aim = (sol[0], sol[1])
+            fire = [False, False]
+            if angle_err(aim_now, aim) < 0.03:
+                fire[mi] = True
+            self.hold_laser(fire)
+            return aim, fire, False
+        return None
 
     def hold_laser(self, fire):
         """Keep a charge in progress instead of wasting it into a wall when the target ducks away."""
