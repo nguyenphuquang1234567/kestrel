@@ -58,7 +58,7 @@ DEFAULTS = {
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
-    "engage_filter": "all",   # "approach": within engage_range, only fight enemies coming at us,
+    "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
                               # that hurt us recently, that are very close, or that are weak
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
