@@ -30,7 +30,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.35,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 160.0,
+    "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
@@ -42,7 +42,7 @@ DEFAULTS = {
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
-    "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
+    "unarmed_avoid": True,   # early on with only the gun, don't start distant fights (still shoot back)
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
 
