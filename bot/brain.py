@@ -17,6 +17,8 @@ import roof
 from combat import ang_size, angle_err, clamp, wrap
 
 WEAPON_VALUE = {"lightning": 3.0, "laser": 2.6, "mortar": 1.0, "gun": 0.0}
+# fighting strength per carried weapon, for the outnumbered test (fixed: loot values are tuned separately)
+POWER_VALUE = {"lightning": 3.0, "laser": 3.2, "mortar": 1.0, "gun": 0.0}
 UPGRADE_ORDER = ["plating", "gun_mag", "armor", "gun_damage", "lightning_efficiency", "laser_damage",
                  "nanites", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range",
                  "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors",
@@ -304,6 +306,9 @@ class Brain:
         closing = (e.tr.vel[0] * dx + e.tr.vel[1] * dy) / n
         return closing > 2.0
 
+    def my_power(self):
+        return 100.0 + sum(POWER_VALUE.get(wp["kind"], 0) * 40.0 for wp in self.weapons if wp)
+
     def threat_level(self, e):
         tr = e.tr
         dps = 100.0
@@ -349,7 +354,7 @@ class Brain:
 
         if close:
             power = sum(self.threat_level(e) for e in close)
-            mine = 100.0 + sum(WEAPON_VALUE.get(wp["kind"], 0) * 40.0 for wp in self.weapons if wp)
+            mine = self.my_power()
             engaging = [e for e in close if e.los or self.t - e.tr.hurt_us_t < 3.0]
             outnumbered = len(engaging) >= 2 and power > mine * 1.3
             losing = target is not None and self.hp_frac < self.P["losing_hp"] and target.hp_frac > self.hp_frac + 0.1
