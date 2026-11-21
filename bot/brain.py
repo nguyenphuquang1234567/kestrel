@@ -13,6 +13,7 @@ import combat
 import geo
 import model
 import nav
+import roof
 from combat import ang_size, angle_err, clamp, wrap
 
 WEAPON_VALUE = {"lightning": 3.0, "laser": 2.6, "mortar": 1.0, "gun": 0.0}
@@ -52,7 +53,9 @@ DEFAULTS = {
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
-    "zone_go": 0.35,           # head into the next circle once the zone urgency reaches this
+    "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
+    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
@@ -113,6 +116,11 @@ class Brain:
         self.nav = nav.NavGrid(self.map, step_up=mc.get("step_up", 1.2), height=mc.get("height", 9.0),
                                radius=mc.get("radius", 2.5), max_slope_deg=mc.get("max_slope_deg", 50.0))
         self.world = model.World(hello)
+        self.roofs = roof.Roofs(self.map, self.nav)
+        self.roof_target = None
+        self.roof_bad = set()
+        self.climb_t = None
+        self.no_steer = False
         self.P = load_params()
         WEAPON_VALUE.update({"mortar": self.P["mortar_value"], "laser": self.P["laser_value"],
                              "lightning": self.P["lightning_value"]})
@@ -316,6 +324,10 @@ class Brain:
 
         if zone_urg >= 1.5:
             return ("zone", zone_pt)
+        if self.P["roof"] and self.t >= self.P["roof_after"] and zone_urg < 1.0:
+            rg = self.roof_goal(visible_close=[e for e in enemies if e.tr.visible and e.d < 50.0])
+            if rg is not None:
+                return rg
 
         if close:
             power = sum(self.threat_level(e) for e in close)
@@ -358,6 +370,44 @@ class Brain:
         if self.P["explore"] and (zone_pt is None or dist2(self.pos, zone_pt) < 15.0):
             return ("explore", self.explore_point())
         return ("roam", zone_pt)
+
+    def roof_goal(self, visible_close):
+        """("roof", roof) while holding or heading for a roof; None to play normally."""
+        r = self.roof_target
+        if r is not None and self.roofs.on(r, self.pos):
+            return ("roof", r)
+        nc = self.zone.get("next_center")
+        nr = float(self.zone.get("next_radius", 1e4))
+        if r is None or r["idx"] in self.roof_bad or (nc and math.hypot(r["stand"][0] - nc[0], r["stand"][1] - nc[1]) > nr - 10.0):
+            r = self.roof_target = self.roofs.pick(self.pos, nc, nr, self.roof_bad)
+            self.climb_t = None
+        if r is None or visible_close:
+            return None
+        return ("roof", r)
+
+    def roof_move(self, r):
+        """Walk to the roof's climb point, jet up the wall, then hold the stand point."""
+        x, y = self.pos[0], self.pos[1]
+        sx, sy = r["stand"]
+        if self.roofs.on(r, self.pos):
+            self.climb_t = None
+            self.no_steer = True
+            d = dist2(self.pos, (sx, sy))
+            return (self.unit(sx - x, sy - y) if d > 2.5 else (0.0, 0.0)), False, False
+        cx, cy = r["climb"]
+        climbing = self.climb_t is not None or dist2(self.pos, (cx, cy)) < 6.0
+        if not climbing:
+            return self.follow((cx, cy)), self.energy > 60, False
+        if self.climb_t is None:
+            self.climb_t = self.t
+        if self.t - self.climb_t > 9.0:  # could not get up: try another roof
+            self.roof_bad.add(r["idx"])
+            self.roof_target = None
+            self.climb_t = None
+            return self.follow((cx, cy)), False, False
+        self.no_steer = True
+        jump = self.grounded and self.energy > 40
+        return self.unit(sx - x, sy - y), not self.grounded and self.energy > 2, jump
 
     def zone_circle(self):
         z = self.zone
@@ -820,7 +870,14 @@ class Brain:
         visible = [e for e in enemies if e.tr.visible]
 
         evade = self.laser_cover(enemies) if self.P["laser_evade"] else None
-        if self.t < self.unstick_until:
+        self.no_steer = False
+        if kind == "roof":
+            d, boost, jump = self.roof_move(goal[1])
+            if self.no_steer:
+                return d, boost, jump  # pressing into the wall or holding the roof: no steering, no unstick
+        if kind == "roof":
+            pass
+        elif self.t < self.unstick_until:
             d = self.unstick_dir
         elif evade is not None:
             d = self.unit(evade[0] - x, evade[1] - y) if dist2(self.pos, evade) > 1.5 else (0.0, 0.0)
