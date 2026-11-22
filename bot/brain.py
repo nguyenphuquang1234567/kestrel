@@ -28,10 +28,10 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 80.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.55, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.5,
+    "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
@@ -92,7 +92,7 @@ DEFAULTS = {
     "roof_explore_max": 6,    # ... at most this many roofs per match
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.6,
-    "heal_hide": True,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
+    "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
