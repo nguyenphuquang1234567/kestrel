@@ -57,7 +57,7 @@ DEFAULTS = {
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
     "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
-    "loot_open_w": 0.5,       # loot score x (1 - w * openness): skip loot lying in the open
+    "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
@@ -73,7 +73,7 @@ DEFAULTS = {
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
