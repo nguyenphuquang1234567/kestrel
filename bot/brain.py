@@ -40,7 +40,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": ["nanites", "plating", "gun_mag", "armor", "gun_damage", "lightning_efficiency", "laser_damage", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
@@ -111,7 +111,7 @@ DEFAULTS = {
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
-    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
+    "cube_value": 2.0,        # loot priorities (value / (distance + 25))
     "crate_value": 1.6,
     "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
@@ -125,7 +125,7 @@ DEFAULTS = {
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
-    "pair": True,            # with laser or lightning held, swap the gun for the other one
+    "pair": False,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
