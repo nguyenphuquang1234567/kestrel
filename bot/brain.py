@@ -84,9 +84,9 @@ DEFAULTS = {
     "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
     "roof_loot_d": 260.0,     # ... only this close (horizontal) when not already on that roof
     "roof_loot_pen": 0.0,    # ... and score them as if this many meters farther (the climb costs time)
-    "roof_min_area": 500.0,   # roofs we know how to climb: at least this big (m^2) ...
-    "roof_min_inset": 6.0,    # ... with a spot at least this far from every edge
-    "roof_min_h": 8.0,        # ... and at least this high above the ground
+    "roof_min_area": 120.0,   # roofs we know how to climb: at least this big (m^2) ...
+    "roof_min_inset": 3.0,    # ... with a spot at least this far from every edge
+    "roof_min_h": 3.0,        # ... and at least this high above the ground
     "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
