@@ -94,7 +94,7 @@ DEFAULTS = {
     "kill_loot_hp": 0.6,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
-    "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
+    "travel_boost_e": 50.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
     "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
