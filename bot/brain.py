@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 120.0,
+    "laser_range": 170.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 4.5,
@@ -107,7 +107,7 @@ DEFAULTS = {
     "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
-    "laser_engage_range": 0.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
+    "laser_engage_range": 180.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
