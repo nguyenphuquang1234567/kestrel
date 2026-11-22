@@ -47,7 +47,7 @@ DEFAULTS = {
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
-    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
+    "retreat_boost_d": 80.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
@@ -93,7 +93,7 @@ DEFAULTS = {
     "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
-    "laser_engage_range": 180.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
+    "laser_engage_range": 0.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
