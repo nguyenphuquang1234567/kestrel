@@ -111,7 +111,7 @@ DEFAULTS = {
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
-    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
+    "cube_value": 3.5,        # loot priorities (value / (distance + 25))
     "crate_value": 1.6,
     "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
