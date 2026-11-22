@@ -94,8 +94,8 @@ DEFAULTS = {
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
     "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 30.0,
-    "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
+    "roof_after": 0.0,
+    "roof_after_kills": 1,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
