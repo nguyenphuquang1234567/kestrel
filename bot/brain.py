@@ -40,7 +40,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": ["plating", "laser_damage", "armor", "gun_mag", "laser_charge", "gun_damage", "lightning_efficiency", "nanites", "gun_rate", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
@@ -82,8 +82,11 @@ DEFAULTS = {
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
     "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
-    "roof_loot_d": 260.0,     # ... only this close (horizontal) when not already on that roof
-    "roof_loot_pen": 0.0,    # ... and score them as if this many meters farther (the climb costs time)
+    "roof_loot_d": 220.0,     # ... only this close (horizontal) when not already on that roof
+    "roof_loot_pen": 10.0,    # ... and score them as if this many meters farther (the climb costs time)
+    "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
+    "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
+    "roof_explore_max": 6,    # ... at most this many roofs per match
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
@@ -91,7 +94,7 @@ DEFAULTS = {
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
-    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush": True,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
     "weapon_rush_d": 150.0,
     "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
@@ -106,11 +109,11 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
-    "npc_stop_d": 55.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
+    "farm_radius": 100.0,      # shoot crates and drones in sight within this range
+    "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "crate_value": 2.4,
+    "npc_value": 4.4,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
@@ -177,6 +180,9 @@ class Brain:
             r_["bbox"] = (min(xs_), min(ys_), max(xs_), max(ys_))
         self._roof_at = {}
         self._loot_climb = {}  # roof idx -> (item key, climb point)
+        self.roofs_visited = set()
+        self._rx_target = None
+        self._rx_on_t = None
         self.P = load_params()
         WEAPON_VALUE.update({"mortar": self.P["mortar_value"], "laser": self.P["laser_value"],
                              "lightning": self.P["lightning_value"]})
@@ -478,9 +484,37 @@ class Brain:
             prey = self.hunt_point(enemies)
             if prey is not None:
                 return ("hunt", prey)
+        if (self.P["roof_explore"] and self.hp_frac > 0.7 and zone_urg < 0.5
+                and len(self.roofs_visited) < self.P["roof_explore_max"]
+                and not any(e.tr.visible for e in enemies)):
+            r = self.roof_explore_pick()
+            if r is not None:
+                return ("rexplore", r)
         if self.P["explore"] and (zone_pt is None or dist2(self.pos, zone_pt) < 15.0):
             return ("explore", self.explore_point())
         return ("roam", zone_pt)
+
+    def roof_explore_pick(self):
+        """Nearest climbable roof inside the next circle we have not looked around from yet (loot on roofs
+        can't be seen from the ground), or None."""
+        cur = self._rx_target
+        if cur is not None and cur["idx"] not in self.roofs_visited and cur["idx"] not in self.roof_bad:
+            return cur
+        nc = self.zone.get("next_center")
+        nr = float(self.zone.get("next_radius", 1e4))
+        best = None
+        for r in self.roofs.list:
+            if r["idx"] in self.roofs_visited or r["idx"] in self.roof_bad:
+                continue
+            sx, sy = r["stand"]
+            if nc and math.hypot(sx - nc[0], sy - nc[1]) > nr - 10.0:
+                continue
+            d = dist2(self.pos, r["climb"])
+            if d <= self.P["roof_explore_d"] and (best is None or d < best[0]):
+                best = (d, r)
+        self._rx_target = best[1] if best else None
+        self._rx_on_t = None
+        return self._rx_target
 
     def roof_goal(self, visible_close):
         """("roof", roof) while holding or heading for a roof; None to play normally."""
@@ -1244,6 +1278,18 @@ class Brain:
             d, boost, jump = self.roof_move(goal[1])
             if self.no_steer:
                 return d, boost, jump  # pressing into the wall or holding the roof: no steering, no unstick
+        if kind == "rexplore":
+            r = goal[1]
+            if self.roofs.on(r, self.pos):
+                if self._rx_on_t is None:
+                    self._rx_on_t = self.t
+                if self.t - self._rx_on_t > 3.0:  # had a look around (the idle aim sweeps every 0.7 s)
+                    self.roofs_visited.add(r["idx"])
+                    self._rx_on_t = None
+            d, boost, jump = self.roof_move(r)
+            if self.no_steer:
+                return d, boost, jump
+            kind = "roof"
         if kind == "loot" and self.P["roof_loot"]:
             rl = self.roof_loot_move(goal[1])
             if rl is not None:
