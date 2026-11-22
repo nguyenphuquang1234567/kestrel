@@ -40,7 +40,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": ["nanites", "plating", "gun_mag", "armor", "gun_damage", "lightning_efficiency", "laser_damage", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
