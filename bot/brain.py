@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 12,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -75,22 +75,22 @@ DEFAULTS = {
     "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
-    "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
-    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "quit_after_t": 120.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
+    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
-    "weapon_rush": True,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
     "weapon_rush_d": 150.0,
     "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
-    "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
+    "check_six": False,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
     "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
-    "peek_reload": True,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
+    "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
     "laser_engage_range": 0.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
