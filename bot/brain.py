@@ -62,7 +62,7 @@ DEFAULTS = {
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
-    "late_salt": 2,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
+    "late_salt": 3,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
     "late_salt_t": 60.0,
     "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
     "late_salt2_t": 180.0,
