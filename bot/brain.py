@@ -128,7 +128,7 @@ DEFAULTS = {
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
-    "pair": False,            # with laser or lightning held, swap the gun for the other one
+    "pair": True,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
