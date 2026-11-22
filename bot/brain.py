@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 4,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -72,7 +72,7 @@ DEFAULTS = {
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
-    "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
+    "roof_snipe": True,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
@@ -90,8 +90,9 @@ DEFAULTS = {
     "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
     "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
-    "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 30.0,
+    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "roof_after": 0.0,
+    "roof_after_kills": 6,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
@@ -390,7 +391,8 @@ class Brain:
             wr = self.weapon_rush_goal(visible)
             if wr is not None:
                 return ("loot", wr)
-        if self.P["roof"] and self.t >= self.P["roof_after"] and zone_urg < 1.0:
+        if (self.P["roof"] and self.t >= self.P["roof_after"] and zone_urg < 1.0
+                and w.kills >= self.P["roof_after_kills"]):
             rg = self.roof_goal(visible_close=[e for e in enemies if e.tr.visible and e.d < 50.0])
             if rg is not None:
                 return rg
