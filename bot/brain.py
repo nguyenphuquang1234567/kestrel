@@ -90,7 +90,7 @@ DEFAULTS = {
     "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
-    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.6,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
@@ -112,11 +112,11 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "farm_radius": 130.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "crate_value": 3.2,
+    "npc_value": 4.4,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
