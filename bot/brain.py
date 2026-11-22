@@ -72,7 +72,7 @@ DEFAULTS = {
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
-    "roof_snipe": True,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
+    "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
@@ -90,9 +90,11 @@ DEFAULTS = {
     "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
     "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
-    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 0.0,
-    "roof_after_kills": 6,    # roof mode only once we have this many kills (the late all-out hunt)
+    "peek_reload": True,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
+    "peek_r": 14.0,
+    "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "roof_after": 30.0,
+    "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
@@ -983,6 +985,36 @@ class Brain:
         self.cover_t = self.t
         return best
 
+    def peek_hide(self, target):
+        """A spot within peek_r that the target cannot see, while none of our weapons can fire soon; else None."""
+        self._peek_hide = None
+        gi, gun = self.weapon("gun")
+        zi, lz = self.weapon("laser")
+        gun_down = gun is None or gun.get("reload", 0) > 0.6 or gun.get("ammo", 1) == 0
+        laser_down = lz is None or lz.get("cooldown", 0.0) > 0.6
+        if not (gun_down and laser_down) or target.d < 30.0:
+            return None
+        x, y = self.pos[0], self.pos[1]
+        tp = target.tr.pos
+        eye = (tp[0], tp[1], tp[2] + 8.0)
+        cands = []
+        for r in (4.0, 8.0, self.P["peek_r"]):
+            for k in range(12):
+                a = 2 * math.pi * k / 12
+                p = (x + r * math.cos(a), y + r * math.sin(a))
+                if self.nav.is_walkable(*p) and self.nav.walk_clear((x, y), p):
+                    cands.append((r, p))
+        if not cands:
+            return None
+        pts = [(p[0], p[1], self.map.ground_z(p[0], p[1]) + 6.0) for _, p in cands]
+        seen = self.map.los_many(eye, pts, step=1.0)
+        hidden = [rp for rp, v in zip(cands, seen) if not v]
+        if not hidden:
+            return None
+        r, p = min(hidden, key=lambda rp: rp[0])
+        self._peek_hide = p
+        return p
+
     def duel_spot(self, target, enemies):
         """A nearby walkable spot that keeps a line of fire to the target while as few of the other
         known enemies as possible can see it (turns a 2-vs-1 into a 1-vs-1)."""
@@ -1044,6 +1076,10 @@ class Brain:
                         rx, ry = self.unit(rx, ry)
                         rx, ry = rx + self.P["retreat_open_w"] * sh[0], ry + self.P["retreat_open_w"] * sh[1]
                 return self.unit(rx, ry)
+        if self.P["peek_reload"]:
+            hide = self.peek_hide(target)
+            if hide is not None:
+                return self.unit(hide[0] - x, hide[1] - y) if math.hypot(hide[0] - x, hide[1] - y) > 1.5 else (0.0, 0.0)
         if self.P["duel"]:
             others = [e for e in enemies if e.tr.id != target.tr.id and self.t - e.tr.seen_t < 5.0 and e.d < 220.0]
             if others:
