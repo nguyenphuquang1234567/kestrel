@@ -72,7 +72,7 @@ DEFAULTS = {
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
-    "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
+    "roof_snipe": True,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
@@ -90,9 +90,10 @@ DEFAULTS = {
     "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
     "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
-    "peek_reload": True,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
+    "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
-    "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
+    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
@@ -985,8 +986,9 @@ class Brain:
         self.cover_t = self.t
         return best
 
-    def peek_hide(self, target):
-        """A spot within peek_r that the target cannot see, while none of our weapons can fire soon; else None."""
+    def peek_hide(self, target, others=()):
+        """A spot within peek_r that the target (and `others`) cannot see, while none of our weapons can fire
+        soon; else None."""
         self._peek_hide = None
         gi, gun = self.weapon("gun")
         zi, lz = self.weapon("laser")
@@ -995,8 +997,7 @@ class Brain:
         if not (gun_down and laser_down) or target.d < 30.0:
             return None
         x, y = self.pos[0], self.pos[1]
-        tp = target.tr.pos
-        eye = (tp[0], tp[1], tp[2] + 8.0)
+        eyes = [(e.tr.pos[0], e.tr.pos[1], e.tr.pos[2] + 8.0) for e in [target] + [o for o in others if o is not target][:3]]
         cands = []
         for r in (4.0, 8.0, self.P["peek_r"]):
             for k in range(12):
@@ -1007,7 +1008,10 @@ class Brain:
         if not cands:
             return None
         pts = [(p[0], p[1], self.map.ground_z(p[0], p[1]) + 6.0) for _, p in cands]
-        seen = self.map.los_many(eye, pts, step=1.0)
+        seen = [False] * len(pts)
+        for eye in eyes:
+            for i, v in enumerate(self.map.los_many(eye, pts, step=1.0)):
+                seen[i] = seen[i] or bool(v)
         hidden = [rp for rp, v in zip(cands, seen) if not v]
         if not hidden:
             return None
@@ -1069,6 +1073,10 @@ class Brain:
                     self.strafe_until = self.t + self.rng.uniform(self.P["strafe_min"], self.P["strafe_max"])
                 side = (-to[1] * self.strafe, to[0] * self.strafe)
                 self.kite_boost = near.d < self.P["retreat_boost_d"]
+                if self.P["peek_retreat"]:
+                    hide = self.peek_hide(near, engaged)
+                    if hide is not None:
+                        return self.unit(hide[0] - x, hide[1] - y) if math.hypot(hide[0] - x, hide[1] - y) > 1.5 else (0.0, 0.0)
                 rx, ry = away[0] + side[0] * 0.5, away[1] + side[1] * 0.5
                 if self.P["retreat_open_w"]:
                     sh = self.shelter_dir()
