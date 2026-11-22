@@ -36,7 +36,7 @@ DEFAULTS = {
     "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
-    "laser_value": 3.2,
+    "laser_value": 4.5,
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
@@ -81,7 +81,7 @@ DEFAULTS = {
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
-    "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
+    "roof_loot": False,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
     "roof_loot_d": 140.0,     # ... only this close (horizontal) when not already on that roof
     "roof_loot_pen": 30.0,    # ... and score them as if this many meters farther (the climb costs time)
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
