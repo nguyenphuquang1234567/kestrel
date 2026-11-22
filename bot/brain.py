@@ -51,7 +51,7 @@ DEFAULTS = {
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
-    "loot_enemy_r": 80.0,     # skip loot this close to an enemy seen in the last 10 s
+    "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
@@ -88,7 +88,7 @@ DEFAULTS = {
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
-    "kill_loot_hp": 0.35,
+    "kill_loot_hp": 0.6,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
@@ -111,7 +111,7 @@ DEFAULTS = {
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
-    "cube_value": 2.0,        # loot priorities (value / (distance + 25))
+    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
     "crate_value": 1.6,
     "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
