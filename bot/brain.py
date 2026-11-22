@@ -73,7 +73,7 @@ DEFAULTS = {
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
@@ -84,9 +84,9 @@ DEFAULTS = {
     "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
     "roof_loot_d": 260.0,     # ... only this close (horizontal) when not already on that roof
     "roof_loot_pen": 0.0,    # ... and score them as if this many meters farther (the climb costs time)
-    "roof_min_area": 120.0,   # roofs we know how to climb: at least this big (m^2) ...
-    "roof_min_inset": 3.0,    # ... with a spot at least this far from every edge
-    "roof_min_h": 3.0,        # ... and at least this high above the ground
+    "roof_min_area": 500.0,   # roofs we know how to climb: at least this big (m^2) ...
+    "roof_min_inset": 6.0,    # ... with a spot at least this far from every edge
+    "roof_min_h": 8.0,        # ... and at least this high above the ground
     "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
@@ -112,11 +112,11 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "farm_radius": 100.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "crate_value": 2.4,
+    "npc_value": 4.4,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
