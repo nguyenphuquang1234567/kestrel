@@ -28,7 +28,7 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 80.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.55, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
@@ -45,7 +45,7 @@ DEFAULTS = {
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
-    "unarmed_avoid": True,   # early on with only the gun, don't start distant fights (still shoot back)
+    "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
@@ -67,7 +67,7 @@ DEFAULTS = {
     "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
     "late_salt2_t": 180.0,
     "cover_empty_none": True, # reproduce the 8:30-9:05 PM builds: no cover spot when no threat is known
-    "early_safe_s": 45.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
+    "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
