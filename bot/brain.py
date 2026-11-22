@@ -120,7 +120,7 @@ DEFAULTS = {
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
-    "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
+    "target_hp_weight": 75.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.25,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
