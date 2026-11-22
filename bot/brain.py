@@ -34,7 +34,7 @@ DEFAULTS = {
     "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
-    "lightning_range": 60.0,
+    "lightning_range": 55.0,
     "mortar_value": 1.0,
     "laser_value": 4.5,
     "lightning_value": 3.0,
