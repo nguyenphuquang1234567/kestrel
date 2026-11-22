@@ -28,7 +28,7 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 70.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
@@ -62,6 +62,8 @@ DEFAULTS = {
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
+    "late_salt": 1,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
+    "late_salt_t": 120.0,
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -238,6 +240,9 @@ class Brain:
         self.zone = obs.get("zone") or {}
         self.on_roof = self.pos[2] > self.map.ground_z(self.pos[0], self.pos[1]) + 3.0
 
+        if self.P["late_salt"] and not getattr(self, "_late_salted", False) and self.t >= self.P["late_salt_t"]:
+            self._late_salted = True
+            self.rng = random.Random(1000003 + 7919 * int(self.P["late_salt"]) + int(self.P["rng_salt"]))
         if ((self.P["quit_after_kills"] and w.kills >= self.P["quit_after_kills"])
                 or (self.P["quit_after_t"] and self.t >= self.P["quit_after_t"])):
             return {"move": [0.0, 0.0], "fire": [False, False]}
