@@ -51,7 +51,7 @@ DEFAULTS = {
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
-    "loot_enemy_r": 80.0,     # skip loot this close to an enemy seen in the last 10 s
+    "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
@@ -125,7 +125,7 @@ DEFAULTS = {
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
-    "pair": False,            # with laser or lightning held, swap the gun for the other one
+    "pair": True,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
