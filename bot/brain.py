@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 170.0,
+    "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 4.5,
@@ -48,11 +48,11 @@ DEFAULTS = {
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
-    "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
+    "retreat_seen_s": 3.5,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 90.0,    # visible enemies closer than this get fought
+    "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
@@ -107,7 +107,7 @@ DEFAULTS = {
     "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
-    "laser_engage_range": 180.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
+    "laser_engage_range": 0.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
