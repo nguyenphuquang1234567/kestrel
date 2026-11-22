@@ -51,7 +51,7 @@ DEFAULTS = {
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
-    "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
+    "loot_enemy_r": 80.0,     # skip loot this close to an enemy seen in the last 10 s
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
@@ -111,7 +111,7 @@ DEFAULTS = {
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
-    "cube_value": 2.0,        # loot priorities (value / (distance + 25))
+    "cube_value": 2.6,        # loot priorities (value / (distance + 25))
     "crate_value": 1.6,
     "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
