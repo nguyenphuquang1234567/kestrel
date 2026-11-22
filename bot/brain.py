@@ -55,7 +55,7 @@ DEFAULTS = {
     "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
-    "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
+    "zone_go": 0.5,           # head into the next circle once the zone urgency reaches this
     "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
