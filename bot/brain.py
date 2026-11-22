@@ -26,7 +26,7 @@ UPGRADE_ORDER = ["plating", "gun_mag", "armor", "gun_damage", "lightning_efficie
 SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", "boost", "jet", "reload"}
 
 DEFAULTS = {
-    "kite_range": 72.0,       # keep lightning carriers at least this far when we lack lightning
+    "kite_range": 80.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
@@ -66,6 +66,7 @@ DEFAULTS = {
     "late_salt_t": 120.0,
     "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
     "late_salt2_t": 180.0,
+    "cover_empty_none": True, # reproduce the 8:30-9:05 PM builds: no cover spot when no threat is known
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -1188,7 +1189,10 @@ class Brain:
             threats = visible or enemies
             if not threats and self.P["heal_hide"]:
                 threats = self.remembered_threats()
-            c = self.find_cover(threats) if (threats or not self.P["heal_hide"]) else self.hide_spot()
+            if threats or not (self.P["heal_hide"] or self.P["cover_empty_none"]):
+                c = self.find_cover(threats)
+            else:
+                c = self.hide_spot() if self.P["heal_hide"] else None
             if c is not None:
                 d = self.follow(c) if dist2(self.pos, c) > 2.5 else (0.0, 0.0)
             else:
