@@ -67,7 +67,7 @@ DEFAULTS = {
     "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
     "late_salt2_t": 180.0,
     "cover_empty_none": True, # reproduce the 8:30-9:05 PM builds: no cover spot when no threat is known
-    "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
+    "early_safe_s": 45.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
