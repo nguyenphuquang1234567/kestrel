@@ -103,10 +103,10 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "farm_radius": 100.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "crate_value": 2.4,
+    "npc_value": 4.4,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
