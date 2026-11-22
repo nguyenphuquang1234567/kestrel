@@ -57,7 +57,7 @@ DEFAULTS = {
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
     "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
-    "loot_open_w": 0.5,       # loot score x (1 - w * openness): skip loot lying in the open
+    "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
@@ -73,7 +73,7 @@ DEFAULTS = {
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
     "fight_boost_off": 25.0,
     "lead_far": 1.0,          # gun lead multiplier at 150 m+ (1 at 50 m, linear between): hedge against strafe reversals
-    "farm_heal_hold": True,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
+    "farm_heal_hold": False,  # no crate/drone shooting while hurt after a recent fight (keeps regen running)
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
@@ -84,6 +84,9 @@ DEFAULTS = {
     "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
     "roof_loot_d": 260.0,     # ... only this close (horizontal) when not already on that roof
     "roof_loot_pen": 0.0,    # ... and score them as if this many meters farther (the climb costs time)
+    "roof_min_area": 120.0,   # roofs we know how to climb: at least this big (m^2) ...
+    "roof_min_inset": 3.0,    # ... with a spot at least this far from every edge
+    "roof_min_h": 3.0,        # ... and at least this high above the ground
     "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
@@ -169,7 +172,9 @@ class Brain:
         self.nav = nav.NavGrid(self.map, step_up=mc.get("step_up", 1.2), height=mc.get("height", 9.0),
                                radius=mc.get("radius", 2.5), max_slope_deg=mc.get("max_slope_deg", 50.0))
         self.world = model.World(hello)
-        self.roofs = roof.Roofs(self.map, self.nav)
+        P_ = load_params()
+        self.roofs = roof.Roofs(self.map, self.nav, min_area=P_["roof_min_area"], min_inset=P_["roof_min_inset"],
+                                min_h=P_["roof_min_h"])
         self.open = geo.Openness(self.map)
         self.roof_target = None
         self.roof_bad = set()
