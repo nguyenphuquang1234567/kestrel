@@ -52,7 +52,7 @@ DEFAULTS = {
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 115.0,    # visible enemies closer than this get fought
+    "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
@@ -94,7 +94,7 @@ DEFAULTS = {
     "kill_loot_hp": 0.6,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
-    "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
+    "travel_boost_e": 50.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
     "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
