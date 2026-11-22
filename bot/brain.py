@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 170.0,
+    "laser_range": 200.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 2,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -93,7 +93,7 @@ DEFAULTS = {
     "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
-    "laser_engage_range": 180.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
+    "laser_engage_range": 230.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
