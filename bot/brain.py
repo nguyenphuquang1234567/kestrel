@@ -82,8 +82,8 @@ DEFAULTS = {
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
     "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
-    "roof_loot_d": 220.0,     # ... only this close (horizontal) when not already on that roof
-    "roof_loot_pen": 10.0,    # ... and score them as if this many meters farther (the climb costs time)
+    "roof_loot_d": 260.0,     # ... only this close (horizontal) when not already on that roof
+    "roof_loot_pen": 0.0,    # ... and score them as if this many meters farther (the climb costs time)
     "roof_explore": True,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
