@@ -30,7 +30,7 @@ DEFAULTS = {
     "kite": True,
     "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
-    "regen_hold": False,
+    "regen_hold": True,
     "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
@@ -46,7 +46,7 @@ DEFAULTS = {
     "strafe_flip": 0.7,       # chance a change actually reverses direction
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
-    "fight_retreat": False,   # with 2+ enemies engaged, back away from them while shooting
+    "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
@@ -90,7 +90,7 @@ DEFAULTS = {
     "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
-    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.6,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
