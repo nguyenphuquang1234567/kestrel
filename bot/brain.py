@@ -30,7 +30,7 @@ DEFAULTS = {
     "kite": True,
     "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
-    "regen_hold": False,
+    "regen_hold": True,
     "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
@@ -40,7 +40,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": ["armor", "plating", "gun_mag", "gun_damage", "lightning_efficiency", "laser_damage", "nanites", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": ["nanites", "plating", "gun_mag", "armor", "gun_damage", "lightning_efficiency", "laser_damage", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
@@ -120,7 +120,7 @@ DEFAULTS = {
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
-    "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
+    "target_hp_weight": 75.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
     "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
