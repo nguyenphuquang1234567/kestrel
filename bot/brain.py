@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 170.0,
+    "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 16,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 9,            # offsets the random stream (same play style, different coin flips)
     "late_salt": 0,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
     "late_salt_t": 120.0,
     "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
@@ -87,17 +87,17 @@ DEFAULTS = {
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
-    "weapon_rush": True,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
     "weapon_rush_d": 150.0,
     "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
-    "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
+    "check_six": False,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
     "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
     "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
-    "laser_engage_range": 180.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
+    "laser_engage_range": 0.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
