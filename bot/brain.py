@@ -40,7 +40,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": None,    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": ["plating", "laser_damage", "armor", "gun_mag", "laser_charge", "gun_damage", "lightning_efficiency", "nanites", "gun_rate", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
@@ -94,7 +94,7 @@ DEFAULTS = {
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
     "cover_commit_s": 0.0,    # once we break off to cover (losing/outnumbered), stay in cover this long
-    "weapon_rush": False,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
+    "weapon_rush": True,     # without a good second weapon, go get a seen one first (still shooting), even mid-fight
     "weapon_rush_d": 150.0,
     "weapon_rush_gain": 1.5,  # minimum value gain of the pickup (empty slot: its value; swap: the difference)
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
@@ -109,11 +109,11 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "farm_radius": 100.0,      # shoot crates and drones in sight within this range
     "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "crate_value": 2.4,
+    "npc_value": 4.4,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
