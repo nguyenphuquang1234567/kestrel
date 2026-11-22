@@ -87,8 +87,8 @@ DEFAULTS = {
     "roof_explore": False,    # idle and healthy: climb a nearby roof to look for loot up there (unseen from the ground)
     "roof_explore_d": 120.0,  # ... roofs whose climb point is this close
     "roof_explore_max": 6,    # ... at most this many roofs per match
-    "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
-    "kill_loot_hp": 0.6,
+    "kill_loot": False,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
+    "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
@@ -125,7 +125,7 @@ DEFAULTS = {
     "drops": False,            # go capture supply drops when no enemies are near them
     "hunt": False,            # idle and healthy: go after the most recently seen enemy
     "hunt_hp": 0.6,           # ... only above this HP fraction
-    "pair": True,            # with laser or lightning held, swap the gun for the other one
+    "pair": False,            # with laser or lightning held, swap the gun for the other one
     "pair_range": 30.0,       # spacing when fighting with laser + lightning
     "duel": False,            # with 2+ enemies around, fight from a spot only the target can see (arena: worse)
 }
