@@ -48,14 +48,14 @@ DEFAULTS = {
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
     "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
-    "retreat_seen_s": 3.5,    # enemies seen this recently count toward "2+ engaged"
+    "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
     "loot_enemy_r": 50.0,     # skip loot this close to an enemy seen in the last 10 s
-    "engage_range": 90.0,    # visible enemies closer than this get fought
+    "engage_range": 110.0,    # visible enemies closer than this get fought
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
-    "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
+    "zone_go": 0.5,           # head into the next circle once the zone urgency reaches this
     "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
