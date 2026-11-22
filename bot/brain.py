@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 6,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 7,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
