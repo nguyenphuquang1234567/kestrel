@@ -47,7 +47,7 @@ DEFAULTS = {
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
-    "retreat_boost_d": 100.0,  # boost while retreating when the nearest is closer than this
+    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
@@ -82,7 +82,7 @@ DEFAULTS = {
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
-    "kill_loot_hp": 0.45,
+    "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
@@ -103,10 +103,10 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "farm_radius": 100.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 1.6,
-    "npc_value": 2.2,
+    "crate_value": 2.4,
+    "npc_value": 4.4,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
