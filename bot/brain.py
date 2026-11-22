@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 130.0,
+    "laser_range": 120.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
@@ -81,6 +81,9 @@ DEFAULTS = {
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
+    "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
+    "roof_loot_d": 140.0,     # ... only this close (horizontal) when not already on that roof
+    "roof_loot_pen": 30.0,    # ... and score them as if this many meters farther (the climb costs time)
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
@@ -168,6 +171,11 @@ class Brain:
         self.roof_bad = set()
         self.climb_t = None
         self.no_steer = False
+        for r_ in self.roofs.list:
+            xs_, ys_ = r_["ring"][0::2], r_["ring"][1::2]
+            r_["bbox"] = (min(xs_), min(ys_), max(xs_), max(ys_))
+        self._roof_at = {}
+        self._loot_climb = {}  # roof idx -> (item key, climb point)
         self.P = load_params()
         WEAPON_VALUE.update({"mortar": self.P["mortar_value"], "laser": self.P["laser_value"],
                              "lightning": self.P["lightning_value"]})
@@ -535,6 +543,60 @@ class Brain:
         jump = self.grounded and self.energy > 40
         return self.unit(sx - x, sy - y), not self.grounded and self.energy > 2, jump
 
+    def roof_at(self, pos):
+        """The listed (climbable) roof this item lies on, or None. Cached per position: items don't move."""
+        key = (round(pos[0], 1), round(pos[1], 1), round(pos[2], 1))
+        if key in self._roof_at:
+            return self._roof_at[key]
+        found = None
+        for r in self.roofs.list:
+            b = r["bbox"]
+            if not (b[0] <= pos[0] <= b[2] and b[1] <= pos[1] <= b[3]) or abs(pos[2] - r["top"]) > 3.0:
+                continue
+            if self.roofs.contains(r, pos[0], pos[1]):
+                found = r
+                break
+        self._roof_at[key] = found
+        return found
+
+    def roof_loot_move(self, item):
+        """(dir, boost, jump) toward loot lying on a climbable roof, or None if it is on the ground.
+        Off the roof: walk to the walkable spot nearest the item, then jet up the wall toward it.
+        On the roof: walk straight to it (crates: stop within 18 m in line of sight and shoot)."""
+        what, _, pos = item
+        if pos[2] <= self.map.ground_z(pos[0], pos[1]) + 2.5:
+            return None
+        r = self.roof_at(pos)
+        if r is None:
+            return None
+        x, y = self.pos[0], self.pos[1]
+        if self.roofs.on(r, self.pos):
+            self.climb_t = None
+            self.no_steer = True
+            d = dist2(self.pos, pos)
+            if what == "crate" and d < 18.0 and self.map.los(self.muzzle, (pos[0], pos[1], pos[2] + 1.2), step=1.0):
+                return (0.0, 0.0), False, False
+            return (self.unit(pos[0] - x, pos[1] - y) if d > 1.0 else (0.0, 0.0)), False, False
+        key = (round(pos[0]), round(pos[1]))
+        lc = self._loot_climb.get(r["idx"])
+        if lc is None or lc[0] != key:
+            cp = self.nav.nearest_walkable(pos[0], pos[1], comp=self.nav.main_component)
+            lc = self._loot_climb[r["idx"]] = (key, cp)
+            self.climb_t = None
+        cx, cy = lc[1]
+        climbing = self.climb_t is not None or dist2(self.pos, (cx, cy)) < 6.0
+        if not climbing:
+            return self.follow((cx, cy)), self.energy > 60, False
+        if self.climb_t is None:
+            self.climb_t = self.t
+        if self.t - self.climb_t > 9.0:  # could not get up: forget this roof
+            self.roof_bad.add(r["idx"])
+            self.climb_t = None
+            return self.follow((cx, cy)), False, False
+        self.no_steer = True
+        jump = self.grounded and self.energy > 40
+        return self.unit(pos[0] - x, pos[1] - y), not self.grounded and self.energy > 2, jump
+
     def weapon_rush_goal(self, visible):
         """("pickup", id, pos) for the best weapon worth rushing to, or None."""
         if any(e.d < self.P["weapon_rush_close"] for e in visible):
@@ -757,12 +819,21 @@ class Brain:
             if value <= 0:
                 return 0.0
             g = self.map.ground_z(pos[0], pos[1])
-            if pos[2] > g + 2.5:  # on a roof: skip for now
-                return 0.0
+            extra = 0.0
+            if pos[2] > g + 2.5:  # on a roof
+                if not self.P["roof_loot"]:
+                    return 0.0
+                r_ = self.roof_at(pos)
+                if r_ is None or r_["idx"] in self.roof_bad:
+                    return 0.0
+                if not self.roofs.on(r_, self.pos):
+                    if dist2(self.pos, pos) > self.P["roof_loot_d"]:
+                        return 0.0
+                    extra = self.P["roof_loot_pen"]
             d = dist2(self.pos, pos)
             if d > 260.0:
                 return 0.0
-            s = value / (d + 25.0)
+            s = value / (d + 25.0 + extra)
             if nc and math.hypot(pos[0] - nc[0], pos[1] - nc[1]) > nr:
                 s *= 0.5
             for e in enemies:
@@ -1170,7 +1241,14 @@ class Brain:
             d, boost, jump = self.roof_move(goal[1])
             if self.no_steer:
                 return d, boost, jump  # pressing into the wall or holding the roof: no steering, no unstick
-        if kind == "roof":
+        if kind == "loot" and self.P["roof_loot"]:
+            rl = self.roof_loot_move(goal[1])
+            if rl is not None:
+                if self.no_steer:
+                    return rl  # jetting up the wall or walking on the roof
+                d, boost, jump = rl
+                kind = "roofloot"
+        if kind == "roof" or kind == "roofloot":
             pass
         elif self.t < self.unstick_until:
             d = self.unstick_dir
