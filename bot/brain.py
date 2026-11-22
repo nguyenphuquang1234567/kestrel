@@ -28,10 +28,10 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 80.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.35, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
-    "losing_hp": 0.3,
+    "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
     "laser_range": 120.0,
     "lightning_range": 60.0,
@@ -40,7 +40,7 @@ DEFAULTS = {
     "lightning_value": 3.0,
     "reload_hidden": True,
     "force_mode": None,       # arena only: pin "squad" or "ffa"
-    "upgrade_order": ["armor", "plating", "gun_mag", "gun_damage", "lightning_efficiency", "laser_damage", "nanites", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
+    "upgrade_order": ["nanites", "plating", "gun_mag", "armor", "gun_damage", "lightning_efficiency", "laser_damage", "gun_rate", "laser_charge", "gyros", "servos", "lightning_range", "lightning_chain", "gun_velocity", "capacitor", "reactor", "jets", "sensors", "laser_pierce", "mortar_reload", "mortar_splash", "mortar_velocity"],    # list of upgrade ids, best first (None: UPGRADE_ORDER)
     "strafe_min": 0.35,       # seconds between strafe direction changes in a fight (uniform min..max)
     "strafe_max": 1.1,
     "strafe_flip": 0.7,       # chance a change actually reverses direction
