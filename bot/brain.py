@@ -82,8 +82,8 @@ DEFAULTS = {
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
     "roof_loot": True,       # also go for crates, cubes and weapons lying on climbable roofs (jet up to them)
-    "roof_loot_d": 220.0,     # ... only this close (horizontal) when not already on that roof
-    "roof_loot_pen": 10.0,    # ... and score them as if this many meters farther (the climb costs time)
+    "roof_loot_d": 140.0,     # ... only this close (horizontal) when not already on that roof
+    "roof_loot_pen": 30.0,    # ... and score them as if this many meters farther (the climb costs time)
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.35,
     "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
@@ -106,11 +106,11 @@ DEFAULTS = {
     "roof_after": 30.0,
     "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
-    "farm_radius": 100.0,      # shoot crates and drones in sight within this range
-    "npc_stop_d": 35.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
+    "farm_radius": 70.0,      # shoot crates and drones in sight within this range
+    "npc_stop_d": 55.0,       # walking to a drone: stop this far away once it is in line of sight (aggro range is 45 m)
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
-    "crate_value": 2.4,
-    "npc_value": 4.4,
+    "crate_value": 1.6,
+    "npc_value": 2.2,
     "lob": True,             # mortar ready and no line of fire: lob shells at known enemies behind cover
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
