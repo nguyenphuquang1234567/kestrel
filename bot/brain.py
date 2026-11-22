@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 2,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -89,6 +89,7 @@ DEFAULTS = {
     "weapon_rush_close": 35.0, # unless a visible enemy is this close
     "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
+    "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
     "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
     "roof_after": 30.0,
     "farm_npcs": True,        # shoot drones for their cubes
@@ -949,6 +950,10 @@ class Brain:
                 p = (x + r * math.cos(a), y + r * math.sin(a))
                 if self.nav.is_walkable(*p) and self.nav.walk_clear(start, p):
                     cands.append(p)
+        keep = None
+        if self.P["cover_stick"] and self.cover is not None and dist2(self.pos, self.cover) < 45.0:
+            keep = self.cover  # hysteresis: only move to a clearly better spot
+            cands.append(keep)
         if not cands or not threats:
             return None
         pts = [(p[0], p[1], self.map.ground_z(p[0], p[1]) + 6.0) for p in cands]
@@ -965,6 +970,8 @@ class Brain:
         nr = float(self.zone.get("next_radius", 1e4))
         for p, ex in zip(cands, exposed):
             s = -ex * 100.0 - dist2(self.pos, p) * 0.8 - self.P["cover_open_w"] * self.open.at(p[0], p[1])
+            if p is keep:
+                s += 30.0
             s += 0.3 * min(dist2(p, e.tr.pos) for e in threats)
             if nc and math.hypot(p[0] - nc[0], p[1] - nc[1]) > nr:
                 s -= 40.0
