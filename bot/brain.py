@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.4,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 120.0,
+    "laser_range": 150.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 4.5,
@@ -56,7 +56,7 @@ DEFAULTS = {
     "hold_fire_beyond": False, # don't shoot enemies beyond engage_range unless they attacked us
     "laser_evade": False,     # an enemy charging a laser at us: duck behind the nearest cover (<= 13 m)
     "zone_go": 0.6,           # head into the next circle once the zone urgency reaches this
-    "explore_open_w": 40.0,    # exploring: penalty per unit of openness (prefer short sightlines)
+    "explore_open_w": 80.0,    # exploring: penalty per unit of openness (prefer short sightlines)
     "loot_open_w": 0.0,       # loot score x (1 - w * openness): skip loot lying in the open
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
@@ -121,7 +121,7 @@ DEFAULTS = {
     "mortar_mode": "gun_down",  # "gun_down": lob only while the gun is reloading or empty (gun first);
                               # "commit": hold the lob up to 1 s whenever the mortar is ready
     "target_hp_weight": 60.0, # target choice: bonus for a weakened enemy (x missing HP fraction)
-    "finish_hp": 0.25,         # also engage enemies below this HP fraction out to finish_range
+    "finish_hp": 0.0,         # also engage enemies below this HP fraction out to finish_range
     "finish_range": 160.0,
     "engage_filter": "approach",   # "approach": within engage_range, only fight enemies coming at us,
                               # that hurt us recently, that are very close, or that are weak
