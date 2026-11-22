@@ -62,7 +62,7 @@ DEFAULTS = {
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
-    "late_salt": 8,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
+    "late_salt": 1,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
     "late_salt_t": 120.0,
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
@@ -1183,7 +1183,7 @@ class Brain:
             threats = visible or enemies
             if not threats and self.P["heal_hide"]:
                 threats = self.remembered_threats()
-            c = self.find_cover(threats) if threats else (self.hide_spot() if self.P["heal_hide"] else None)
+            c = self.find_cover(threats) if (threats or not self.P["heal_hide"]) else self.hide_spot()
             if c is not None:
                 d = self.follow(c) if dist2(self.pos, c) > 2.5 else (0.0, 0.0)
             else:
