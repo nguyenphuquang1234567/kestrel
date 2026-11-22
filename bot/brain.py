@@ -33,7 +33,7 @@ DEFAULTS = {
     "regen_hold": True,
     "losing_hp": 0.5,
     "gun_range": 110.0,       # preferred spacing with only a gun
-    "laser_range": 120.0,
+    "laser_range": 170.0,
     "lightning_range": 60.0,
     "mortar_value": 1.0,
     "laser_value": 3.2,
@@ -72,7 +72,7 @@ DEFAULTS = {
     "retreat_open_w": 0.0,    # fighting retreat: pull toward nearby spots with shorter sightlines
     "precharge": False,       # charge the laser for a tracked enemy about to come out from behind cover
     "precharge_d": 90.0,
-    "roof_snipe": True,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
+    "roof_snipe": False,      # on a roof: walk to the edge facing the nearest known enemy and shoot down
     "snipe_hp": 0.5,          # below this HP fraction, back off to the middle of the roof to heal
     "quit_after_kills": 0,    # diagnostic probes only: after this many kills, stand still and hold fire (0 = never)
     "quit_after_t": 0.0,      # diagnostic probes only: from this match time on, stand still and hold fire (0 = never)
@@ -93,9 +93,10 @@ DEFAULTS = {
     "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
-    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 0.0,
-    "roof_after_kills": 1,    # roof mode only once we have this many kills (the late all-out hunt)
+    "laser_engage_range": 180.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
+    "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "roof_after": 30.0,
+    "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
@@ -384,7 +385,10 @@ class Brain:
         w = self.world
         zone_urg, zone_pt = self.zone_need()
         visible = [e for e in enemies if e.tr.visible]
-        close = [e for e in visible if (e.d < self.P["engage_range"] and self.worth_fighting(e))
+        eng = self.P["engage_range"]
+        if self.P["laser_engage_range"] and "laser" in self.slot_kinds():
+            eng = self.P["laser_engage_range"]
+        close = [e for e in visible if (e.d < eng and self.worth_fighting(e))
                  or (e.hp_frac < self.P["finish_hp"] and e.d < self.P["finish_range"])]
         recent_hit = self.t - w.last_damage_t() < 3.0
 
