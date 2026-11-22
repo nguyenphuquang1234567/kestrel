@@ -92,7 +92,7 @@ DEFAULTS = {
     "roof_explore_max": 6,    # ... at most this many roofs per match
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.6,
-    "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
+    "heal_hide": True,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
