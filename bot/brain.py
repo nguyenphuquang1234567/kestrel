@@ -28,7 +28,7 @@ SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", 
 DEFAULTS = {
     "kite_range": 80.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
-    "multi_retreat_hp": 0.55, # with 2+ enemies engaging, take cover below this HP fraction
+    "multi_retreat_hp": 0.45, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
     "regen_hold": True,
     "losing_hp": 0.5,
@@ -67,7 +67,7 @@ DEFAULTS = {
     "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
     "late_salt2_t": 180.0,
     "cover_empty_none": True, # reproduce the 8:30-9:05 PM builds: no cover spot when no threat is known
-    "early_safe_s": 45.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
+    "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
     "fight_boost_on": 60.0,   # start boosting above this energy, stop below fight_boost_off
@@ -92,7 +92,7 @@ DEFAULTS = {
     "roof_explore_max": 6,    # ... at most this many roofs per match
     "kill_loot": True,       # right after a kill, go pick up the cubes it dropped (if not badly hurt)
     "kill_loot_hp": 0.6,
-    "heal_hide": False,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
+    "heal_hide": True,       # hide to heal from enemies seen in the last 20 s, not only the last 6 s
     "hide_hp": 0.5,           # with heal_hide: below this HP after a recent fight, hide in a sheltered spot even if no enemy is known
     "travel_boost_e": 40.0,   # boost while travelling only above this energy (keeps a reserve for escapes)
     "hunt_first": False,      # when healthy, go after the last seen enemy before looting
