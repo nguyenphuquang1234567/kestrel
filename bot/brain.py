@@ -61,7 +61,7 @@ DEFAULTS = {
     "zone_open_w": 0.0,       # choosing where to stand in the next circle: penalty per unit of openness
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
-    "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
+    "rng_salt": 5,            # offsets the random stream (same play style, different coin flips)
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -90,13 +90,13 @@ DEFAULTS = {
     "check_six": True,       # hit from behind by someone we cannot see: turn to look for a moment
     "check_six_s": 0.7,
     "cover_stick": False,     # keep the chosen cover spot while it still hides us (no re-pick every second)
-    "peek_reload": False,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
+    "peek_reload": True,     # one-on-one: while the gun reloads and the laser cools down, duck behind nearby cover
     "peek_r": 14.0,
     "peek_retreat": False,    # also duck out of sight of all engaged enemies during a fighting retreat
     "laser_engage_range": 0.0, # when holding a laser, fight approaching enemies out to this range (0 = engage_range)
-    "roof": True,            # after roof_after seconds, jet onto a roof inside the zone and hold it
-    "roof_after": 0.0,
-    "roof_after_kills": 6,    # roof mode only once we have this many kills (the late all-out hunt)
+    "roof": False,            # after roof_after seconds, jet onto a roof inside the zone and hold it
+    "roof_after": 30.0,
+    "roof_after_kills": 0,    # roof mode only once we have this many kills (the late all-out hunt)
     "farm_npcs": True,        # shoot drones for their cubes
     "farm_radius": 70.0,      # shoot crates and drones in sight within this range
     "cube_value": 2.6,        # loot priorities (value / (distance + 25))
