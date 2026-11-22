@@ -62,8 +62,10 @@ DEFAULTS = {
     "fight_open_w": 0.0,      # fighting: pull toward nearby spots with shorter sightlines
     "cover_open_w": 0.0,      # choosing cover: penalty per unit of openness
     "rng_salt": 0,            # offsets the random stream (same play style, different coin flips)
-    "late_salt": 8,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
-    "late_salt_t": 120.0,
+    "late_salt": 1,           # from late_salt_t on, switch to another random stream (re-rolls only the rest of the match)
+    "late_salt_t": 60.0,
+    "late_salt2": 0,          # a second switch of the random stream at late_salt2_t (stage-wise re-rolls)
+    "late_salt2_t": 180.0,
     "early_safe_s": 0.0,       # before this match time: no fights or shots unless attacked or within early_safe_d
     "early_safe_d": 50.0,
     "fight_boost": False,     # strafe at boost speed in fights while energy lasts (not when carrying lightning)
@@ -243,6 +245,9 @@ class Brain:
         if self.P["late_salt"] and not getattr(self, "_late_salted", False) and self.t >= self.P["late_salt_t"]:
             self._late_salted = True
             self.rng = random.Random(1000003 + 7919 * int(self.P["late_salt"]) + int(self.P["rng_salt"]))
+        if self.P["late_salt2"] and not getattr(self, "_late_salted2", False) and self.t >= self.P["late_salt2_t"]:
+            self._late_salted2 = True
+            self.rng = random.Random(2000003 + 7919 * int(self.P["late_salt2"]) + 31 * int(self.P["late_salt"]))
         if ((self.P["quit_after_kills"] and w.kills >= self.P["quit_after_kills"])
                 or (self.P["quit_after_t"] and self.t >= self.P["quit_after_t"])):
             return {"move": [0.0, 0.0], "fire": [False, False]}
