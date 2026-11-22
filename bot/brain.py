@@ -26,7 +26,7 @@ UPGRADE_ORDER = ["plating", "gun_mag", "armor", "gun_damage", "lightning_efficie
 SOUND_THREATS = {"gun", "laser", "laser_charge", "lightning", "mortar", "step", "boost", "jet", "reload"}
 
 DEFAULTS = {
-    "kite_range": 80.0,       # keep lightning carriers at least this far when we lack lightning
+    "kite_range": 90.0,       # keep lightning carriers at least this far when we lack lightning
     "kite": True,
     "multi_retreat_hp": 0.4, # with 2+ enemies engaging, take cover below this HP fraction
     "regen_hold_hp": 0.8,     # after a fight, hide until healed to this fraction
@@ -47,7 +47,7 @@ DEFAULTS = {
     "empty_slot_mult": 1.0,   # weapon pickups count this much more while slot 1 is empty
     "unarmed_avoid": False,   # early on with only the gun, don't start distant fights (still shoot back)
     "fight_retreat": True,   # with 2+ enemies engaged, back away from them while shooting
-    "retreat_boost_d": 100.0,  # boost while retreating when the nearest is closer than this
+    "retreat_boost_d": 90.0,  # boost while retreating when the nearest is closer than this
     "retreat_seen_s": 3.0,    # enemies seen this recently count toward "2+ engaged"
     "retreat_min_enemies": 2, # fighting retreat kicks in at this many engaged enemies
     "explore": True,          # idle inside the zone: go look for loot (else hold position)
